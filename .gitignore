@@ -1,0 +1,4 @@
+configuration.inc
+tests/configuration.inc
+build
+dist

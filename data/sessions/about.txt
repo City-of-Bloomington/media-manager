@@ -1,0 +1,1 @@
+This application should be configured to store PHP sessions in this directory.
