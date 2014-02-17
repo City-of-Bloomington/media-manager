@@ -1,6 +1,6 @@
 <?php
 /**
- * @copyright 2009-2013 City of Bloomington, Indiana
+ * @copyright 2009-2014 City of Bloomington, Indiana
  * @license http://www.gnu.org/licenses/agpl.txt GNU/AGPL, see LICENSE.txt
  * @author Cliff Ingham <inghamn@bloomington.in.gov>
  * @param Person $this->person
@@ -10,10 +10,11 @@ use Blossom\Classes\View;
 
 $username = $this->person->getUsername();
 if (!$username && Person::isAllowed('users')) {
-	$username = sprintf(
-		'<a class="add button" href="%s">%s</a>',
+	$helper = $this->template->getHelper('buttonLink');
+	$username = $helper->buttonLink(
 		BASE_URI.'/users/update?user_id='.$this->person->getId(),
-		$this->translate('labels.create_account')
+		$this->translate('create_account'),
+		'add'
 	);
 }
 

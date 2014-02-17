@@ -1,22 +1,24 @@
 <?php
 /**
- * @copyright 2009-2013 City of Bloomington, Indiana
+ * @copyright 2009-2014 City of Bloomington, Indiana
  * @license http://www.gnu.org/licenses/agpl.txt GNU/AGPL, see LICENSE.txt
  * @author Cliff Ingham <inghamn@bloomington.in.gov>
- * @param Zend\Db\ResultSet $people
+ * @param Zend\Db\ResultSet $this->people
  */
 use Application\Models\Person;
 use Blossom\Classes\View;
 ?>
 <div class="interfaceBox">
 	<h2><?php
-			echo $this->translate(['labels.person','labels.people',2]);
+			echo $this->translate(['person','people',2]);
+
+			$helper = $this->template->getHelper('buttonLink');
 
 			if (Person::isAllowed('people')) {
-				echo sprintf(
-					'<a class="add button" href="%s">%s</a>',
+				echo $helper->buttonLink(
 					BASE_URI.'/people/update',
-					$this->translate('labels.add_person')
+					$this->translate('add_person'),
+					'add'
 				);
 			}
 		?>
@@ -24,9 +26,10 @@ use Blossom\Classes\View;
 	<table>
 		<thead>
 			<tr><th></th>
-				<th><?php echo $this->_('labels.username'); ?></th>
-				<th><?php echo $this->_('labels.name'); ?></th>
-				<th><?php echo $this->_(['labels.email','labels.emails',1]); ?></th>
+				<th><?php echo $this->_('username'); ?></th>
+				<th><?php echo $this->_('name'); ?></th>
+				<th><?php echo $this->_(['email','emails',1]); ?></th>
+				<th><?php echo $this->_(['department', 'departments', 1]); ?></th>
 			</tr>
 		</thead>
 		<tbody>
@@ -34,19 +37,21 @@ use Blossom\Classes\View;
 			foreach ($this->people as $person) {
 				$editButton = '';
 				if (Person::isAllowed('people')) {
-					$editButton = sprintf(
-						'<a class="edit button" href="%s">%s</a>',
+					$editButton = $helper->buttonLink(
 						BASE_URI.'/people/update?person_id='.$person->getId(),
-						$this->translate('labels.edit')
+						$this->translate('edit'),
+						'edit'
 					);
 				}
 
 				$name = View::escape($person->getFullname());
+				$d = View::escape($person->getDepartment());
 				echo "
 				<tr><td>$editButton</td>
 					<td>{$person->getUsername()}</td>
 					<td><a href=\"{$person->getURL()}\">$name</a></td>
 					<td>{$person->getEmail()}</td>
+					<td>$d</td>
 				</tr>
 				";
 			}

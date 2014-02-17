@@ -1,6 +1,6 @@
 <?php
 /**
- * @copyright 2012-2013 City of Bloomington, Indiana
+ * @copyright 2012-2014 City of Bloomington, Indiana
  * @license http://www.gnu.org/licenses/agpl.txt GNU/AGPL, see LICENSE.txt
  * @author Cliff Ingham <inghamn@bloomington.in.gov>
  */
@@ -8,8 +8,18 @@ include '../configuration.inc';
 use Blossom\Classes\Template;
 use Blossom\Classes\Block;
 
-// Check for routes
-if (preg_match('|'.BASE_URI.'(/([a-zA-Z0-9]+))?(/([a-zA-Z0-9]+))?|',$_SERVER['REQUEST_URI'],$matches)) {
+// Check for Media thumbnail requests
+if (preg_match(
+	'#'.BASE_URI.'/m/\d{4}/\d{1,2}/\d{1,2}/(\d+)/([a-f0-9]+\.[a-z]+)#',
+	$_SERVER['REQUEST_URI'],
+	$matches)) {
+	$resource = 'media';
+	$action   = 'resize';
+	$_REQUEST['size']     = $matches[1];
+	$_REQUEST['media_id'] = $matches[2];
+}
+// Check for default routes
+elseif (preg_match('|'.BASE_URI.'(/([a-zA-Z0-9]+))?(/([a-zA-Z0-9]+))?|',$_SERVER['REQUEST_URI'],$matches)) {
 	$resource = isset($matches[2]) ? $matches[2] : 'index';
 	$action   = isset($matches[4]) ? $matches[4] : 'index';
 }

@@ -1,12 +1,19 @@
+<?php
+use Application\Models\Person;
+?>
 <nav>
-	<?php
-		$a = '<a href="%s">%s</a>';
-		echo sprintf($a, BASE_URI, $this->translate('labels.home'));
-		if (isset($_SESSION['USER'])) {
-			echo sprintf($a, BASE_URI.'/login/logout', $this->translate('labels.logout'));
+<?php
+	$a = '<a href="%s">%s</a>';
+
+	$routes = [
+		'department'=>'departments',
+		'person'    =>'people',
+		'user'      =>'users'
+	];
+	foreach ($routes as $singular=>$plural) {
+		if (Person::isAllowed($plural, 'index')) {
+			echo sprintf($a, BASE_URI.'/'.$plural, $this->_(["$singular", "$plural", 2]));
 		}
-		else {
-			echo sprintf($a, BASE_URI."/login?return_url=$_SERVER[REQUEST_URI]", $this->translate('labels.login'));
-		}
-	?>
+	}
+?>
 </nav>

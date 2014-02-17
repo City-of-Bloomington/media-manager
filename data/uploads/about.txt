@@ -1,0 +1,3 @@
+This directory is the holding area for uploaded files.
+Users will each have their own directory of files they have uploaded.
+Files remain here until imported into the database.

@@ -1,37 +1,53 @@
 /**
  * Basic HTML element styles
  */
-body { font-family:sans-serif; }
+body { font-family:sans-serif; font-size:10pt; }
 
-h2 { font-size:131%; font-weight:bold; margin:.5em 0; color:#036; }
-h3 { font-size:123.1%; font-weight:bold;  margin:.5em 0 .25em 0; }
-h4 { font-size:100%; font-weight:bold; }
-a { text-decoration:none; color:#00f; }
-p { margin:0 .5em .5em .5em; }
+h2 { font-size:131%;   font-weight:bold; margin:.5em 0; color:#036; }
+h3 { font-size:123.1%; font-weight:bold; margin:.5em 0 .25em 0; }
+h4 { font-size:100%;   font-weight:bold; }
+nav a { margin-right:1em; }
+a { text-decoration:none; color:#036; }
+p { margin-bottom:.5em; }
 
-table { margin:0 .5em .5em .5em; }
-th { color:#333; font-weight:bold; font-size:90%; padding:0.25em; }
+table { margin:0 .5em .5em .5em; border:1px solid black; }
+th { background-color:#ddd; color:#666; font-weight:bold; font-size:90%; padding:0.25em; }
 td { padding:.25em; }
 thead th { text-align:left; }
 tbody th { text-align:right; }
 
-ul { list-style-type:bullet; margin-left:1em; padding:0; }
+ul { list-style-type:circle; margin-left:1em; padding:0; }
 li { margin:0; }
 
 fieldset { padding:.25em 0; }
 legend { font-weight:bold; }
 label { font-weight:bold; }
+form table { border:none; }
 
 /**
  * Base styles for buttons and button links
  */
-button, .button {
-	border:1px solid black; border-radius:6px;
+button, .btn {
+	font-size:12px; color:black;
+	font-weight:normal;
 	display:inline-block;
-	padding:0 10px;
-	font-weight:bold; color:black;
-	background: linear-gradient(to bottom, #f5f6f6 0%,#dbdce2 21%,#b8bac6 49%,#dddfe3 80%,#f5f6f6 100%);
+	padding:4px;
+	margin-right:.5ex;
+	border:1px solid #ccc;
+	background-image:url('images/buttonBackground.png');
+	background-position:left center;
+	background-repeat:repeat-x;
 }
+.hidden-label 		{ font-size:0; height:1px; overflow:hidden; }
+.fa-times 		{ color:red;   }
+.fa-pencil 		{ color:blue;  }
+.fa-edit        { color:blue;  }
+.fa-plus   		{ color:green; }
+.fa-ok     		{ color:green; }
+.fa-save   		{ color:green; }
+.fa-map-marker 	{ color:blue;  }
+.fa-list-ul		{ color:blue;  }
+.fa-print       { color:blue;  }
 
 /**
  * Banner
@@ -45,7 +61,9 @@ header nav {
 	background-color:#fff;
 	border-top:2px solid #000; border-bottom:2px solid #000;
 }
-header nav a { font-weight:bold; color:black; margin-right:1em; }
+header nav a { font-weight:bold; color:black; }
+#utilityBar { float:right; width:50%; text-align:right; }
+#utilityBar li { display:inline; margin-right:1em; color:white; }
 
 /**
  * Side Panel
@@ -63,6 +81,8 @@ header nav a { font-weight:bold; color:black; margin-right:1em; }
 #panel-one ul { margin:.25em; padding:0; }
 #panel-one a { font-weight:bold; color:#000; }
 
+#content-panel { padding:4px; }
+
 /**
  * Main Content
  */
@@ -72,3 +92,17 @@ header nav a { font-weight:bold; color:black; margin-right:1em; }
 .pageNavigation ul { list-style-type:none; }
 .pageNavigation li { display:inline; margin-right:1em; }
 .pageNavigation .current { border:2px solid green; }
+
+/* Tag Styles */
+.tags   { font-size:20px; }
+.tags a { font-size:20px; }
+.tags .p90 a { font-size:110%; color:black; font-weight:bold; }
+.tags .p70 a { font-size:100%; color:black;   }
+.tags .p50 a { font-size:90%;  color:#150517; }
+.tags .p30 a { font-size:75%;  color:#2b1b17; }
+.tags .p10 a { font-size:60%;  color:#302226; }
+.tags .p0  a { font-size:50%;  color:#3b3131; }
+.tags a.current { color:#ee7d22; }
+
+tr.current { background-color:#ccc; }
+a.current { font-weight:bold; }
