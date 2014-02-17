@@ -13,8 +13,27 @@ use Blossom\Classes\Block;
 
 class MediaController extends Controller
 {
+	private function loadMedia($id)
+	{
+		try {
+			$media = new Media($id);
+		}
+		catch (\Exception $e) {
+			$_SESSION['errorMessages'][] = $e;
+			header('Location: '.BASE_URL);
+			exit();
+		}
+		return $media;
+	}
+
 	public function index()
 	{
+	}
+
+	public function view()
+	{
+		$media = $this->loadMedia($_GET['media_id']);
+		$this->template->blocks[] = new Block('media/view.inc', ['media'=>$media]);
 	}
 
 	/**
@@ -37,5 +56,24 @@ class MediaController extends Controller
 		catch (Exception $e) {
 			header('HTTP/1.1 404 Not Found', true, 404);
 		}
+	}
+
+	public function update()
+	{
+		$media = $this->loadMedia($_REQUEST['media_id']);
+
+		if (isset($_POST['title'])) {
+			try {
+				$media->handleUpdate($_POST);
+				$media->save();
+				header('Location: '.BASE_URL.'/media/view?media_id='.$media->getId());
+				exit();
+			}
+			catch (\Exception $e) {
+				$_SESSION['errorMessages'][] = $e;
+			}
+		}
+
+		$this->template->blocks[] = new Block('media/updateForm.inc', ['media'=>$media]);
 	}
 }

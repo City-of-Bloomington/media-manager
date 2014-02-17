@@ -13,16 +13,16 @@
  */
 namespace Application\Models;
 
-class UploadDirectory Implements Countable,IteratorAggregate
+class UploadDirectory Implements \Countable, \IteratorAggregate
 {
 	private $user;
+	private $data = [];
 
 	public function __construct(Person $user)
 	{
 		$this->user = $user;
-		if (!is_dir($this->getDirectory())) {
-			mkdir($this->getDirectory(),0777);
-		}
+		$dir = $this->getDirectory();
+		if (!is_dir($dir)) { mkdir($dir,0777); }
 	}
 
 	/**

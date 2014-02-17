@@ -10,8 +10,8 @@ use Zend\Permissions\Acl\Resource\GenericResource as Resource;
 
 $ZEND_ACL = new Acl();
 $ZEND_ACL->addRole(new Role('Anonymous'))
-		 ->addRole(new Role('Public'), 'Anonymous')
-		 ->addRole(new Role('Staff'), 'Public')
+		 ->addRole(new Role('Public'),        'Anonymous')
+		 ->addRole(new Role('Staff'),         'Public')
 		 ->addRole(new Role('Administrator'), 'Staff');
 
 /**

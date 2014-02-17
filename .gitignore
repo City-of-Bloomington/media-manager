@@ -1,4 +1,6 @@
 configuration.inc
+data/media/*
 data/sessions/*
+data/uploads/*
 build
 dist

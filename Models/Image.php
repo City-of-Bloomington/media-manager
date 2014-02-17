@@ -64,7 +64,11 @@ class Image extends Media
 		preg_match(Media::REGEX_FILENAME_EXT, basename($inputFile), $matches);
 		$filename = $matches[1];
 
-		if (!is_dir($directory)) { mkdir($directory, 0777, true); }
+		if (!is_dir($directory)) {
+			if (!mkdir($directory, 0777, true)) {
+				throw new \Exception('media/PermissionDenied');
+			}
+		}
 
 		$dimensions = $size.'x'.$size;
 		$newFile = "$directory/$filename.png";

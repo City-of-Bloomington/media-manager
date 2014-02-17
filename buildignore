@@ -5,7 +5,9 @@
 .git/
 .git*
 configuration.inc
+/data/media/*
 /data/sessions/*
+/data/uploads/*
 /scripts/backup.cnf
 /libraries/zf2/bin/
 /libraries/zf2/demos/

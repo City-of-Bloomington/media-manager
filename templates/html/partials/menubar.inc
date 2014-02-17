@@ -6,6 +6,7 @@ use Application\Models\Person;
 	$a = '<a href="%s">%s</a>';
 
 	$routes = [
+		'upload'    =>'uploads',
 		'department'=>'departments',
 		'person'    =>'people',
 		'user'      =>'users'

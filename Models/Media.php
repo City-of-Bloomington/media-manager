@@ -14,6 +14,8 @@ use Blossom\Classes\Database;
 
 class Media extends ActiveRecord
 {
+	const SIZE_THUMBNAIL = 60;
+	const SIZE_MEDIUM    = 350;
 	const REGEX_FILENAME_EXT = '/(^.*)\.([^\.]+)$/';
 
 	protected $tablename = 'media';
@@ -135,22 +137,40 @@ class Media extends ActiveRecord
 	//----------------------------------------------------------------
 	// Generic Getters & Setters
 	//----------------------------------------------------------------
-	public function getId()         { return parent::get('id');         }
-	public function getIssue_id()   { return parent::get('issue_id');   }
-	public function getFilename()   { return parent::get('filename');   }
-	public function getMime_type()  { return parent::get('mime_type');  }
-	public function getMedia_type() { return parent::get('media_type'); }
-	public function getPerson_id()  { return parent::get('person_id');  }
+	public function getId()          { return parent::get('id');          }
+	public function getIssue_id()    { return parent::get('issue_id');    }
+	public function getFilename()    { return parent::get('filename');    }
+	public function getMime_type()   { return parent::get('mime_type');   }
+	public function getMedia_type()  { return parent::get('media_type');  }
+	public function getMd5()         { return parent::get('md5');         }
+	public function getTitle()       { return parent::get('title');       }
+	public function getDescription() { return parent::get('description'); }
+	public function getPerson_id()   { return parent::get('person_id');   }
+	public function getPerson()      { return parent::getForeignKeyObject(__namespace__.'\Person', 'person_id'); }
 	public function getUploaded($f=null, DateTimeZone $tz=null) { return parent::getDateData('uploaded', $f, $tz); }
-	public function getPerson()   { return parent::getForeignKeyObject(__namespace__.'\Person', 'person_id'); }
 
-	public function setPerson_id($id)    { parent::setForeignKeyField (__namespace__.'\Person', 'person_id', $id); }
-	public function setPerson(Person $o) { parent::setForeignKeyObject(__namespace__.'\Person', 'person_id', $o);  }
-	public function setUploaded($d)      { parent::setDateData('uploaded', $d); }
+	public function setMd5        ($s) { parent::set('md5',         $s); }
+	public function setTitle      ($s) { parent::set('title',       $s); }
+	public function setDescription($s) { parent::set('description', $s); }
+	public function setPerson_id  ($i) { parent::setForeignKeyField (__namespace__.'\Person', 'person_id', $i); }
+	public function setPerson     ($o) { parent::setForeignKeyObject(__namespace__.'\Person', 'person_id', $o);  }
+	public function setUploaded   ($d) { parent::setDateData('uploaded', $d); }
 
 
 	public function getType() { return $this->getMedia_type(); }
 	public function getModified($f=null, DateTimeZone $tz=null) { return $this->getUploaded($f, $tz); }
+
+	/**
+	 * @param array $post
+	 */
+	public function handleUpdate($post)
+	{
+		$fields = ['title', 'description'];
+		foreach ($fields as $f) {
+			$set = 'set'.ucfirst($f);
+			$this->$set($post[$f]);
+		}
+	}
 
 	//----------------------------------------------------------------
 	// Custom Functions
@@ -172,16 +192,28 @@ class Media extends ActiveRecord
 			throw new \Exception('media/uploadFailed');
 		}
 
+		// Make sure the file's not already in the system
+		$this->setMd5(md5_file($tempFile));
+		$table = new MediaTable();
+		$list = $table->find(['md5'=>$this->getMd5()]);
+		if (count($list)) {
+			# If we're updating a file, we expect to get one
+			# hit back - but it needs to have the current media_id
+			# Otherwise, then the file is already in the system
+			if ($list->current()->getId() != $this->getId()) {
+				throw new \Exception('media/fileAlreadyExists');
+			}
+		}
+
 		// Clean all bad characters from the filename
 		$filename = $this->createValidFilename($filename);
 		$this->data['filename'] = $filename;
-		$extension = $this->getExtension($filename);
+		$extension = self::getExtension($filename);
 
 		// Find out the mime type for this file
 		if (array_key_exists(strtolower($extension),Media::$extensions)) {
 			$this->data['mime_type']  = Media::$extensions[$extension]['mime_type'];
 			$this->data['media_type'] = Media::$extensions[$extension]['media_type'];
-
 		}
 		else {
 			throw new \Exception('media/unknownFileType');
@@ -231,7 +263,7 @@ class Media extends ActiveRecord
 	{
 		$filename = parent::get('internalFilename');
 		if (!$filename) {
-			$filename = uniqid().'.'.$this->getExtension($this->data['filename']);
+			$filename = uniqid().'.'.self::getExtension($this->data['filename']);
 			parent::set('internalFilename', $filename);
 		}
 		return $filename;
@@ -240,7 +272,7 @@ class Media extends ActiveRecord
 	/**
 	 * @return string
 	 */
-	public function getExtension($filename)
+	public static function getExtension($filename)
 	{
 		if (preg_match("/[^.]+$/", $filename, $matches)) {
 			return strtolower($matches[0]);
@@ -254,12 +286,18 @@ class Media extends ActiveRecord
 	/**
 	 * Returns the URL to this media
 	 *
+	 * @param int $size
 	 * @return string
 	 */
-	public function getUrl($size=null)
+	public function getUrl($size=null) { return BASE_URL.$this->getMediaPath($size); }
+	public function getUri($size=null) { return BASE_URI.$this->getMediaPath($size); }
+	private function getMediaPath($size=null)
 	{
-		$url = BASE_URL."/m/{$this->getDirectory()}";
-		if (!empty($size)) { $url.= "/$size"; }
+		$url = "/m/{$this->getDirectory()}";
+		if (!empty($size)) {
+			$size = (int)$size;
+			$url.= "/$size";
+		}
 		$url.= "/{$this->getInternalFilename()}";
 		if ($size) {
 			// All derivatives should be PNG
@@ -295,5 +333,14 @@ class Media extends ActiveRecord
 		}
 
 		return $string;
+	}
+
+	/**
+	 * @return boolean
+	 */
+	public static function isValidFiletype($filename)
+	{
+		$ext = self::getExtension($filename);
+		return array_key_exists(strtolower($ext),self::$extensions);
 	}
 }
