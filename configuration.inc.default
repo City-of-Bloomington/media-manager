@@ -110,6 +110,14 @@ $DIRECTORY_CONFIG = array(
 //define('CAS_SERVER','cas.somewhere.org');
 //define('CAS_URI','cas');
 
+define('DATE_FORMAT', 'Y-m-d H:i:s');
+
+/**
+ * Image handling library
+ * Set the path to the ImageMagick binaries
+ */
+define('IMAGEMAGICK','/usr/bin');
+
 //-------------------------------------------------------------------
 // Bootstrap code
 // No editing is usually needed after this point
@@ -130,12 +138,26 @@ $config = [
 Zend\Loader\AutoloaderFactory::factory($config);
 
 /**
+ * Support for multi-tenant installs
+ *
+ * Allow apache configuration to control where to store data
+ * Default to APPLICATION_HOME
+ */
+if (!empty($_SERVER['DATA_HOME'])) {
+	define('DATA_HOME', $_SERVER['DATA_HOME']);
+}
+else {
+	define('DATA_HOME', APPLICATION_HOME);
+}
+
+/**
  * Session Startup
+ *
  * Don't start a session for CLI usage.
  * We only want sessions when PHP code is executed from the webserver
  */
 if (!defined('STDIN')) {
-	ini_set('session.save_path',APPLICATION_HOME.'/data/sessions');
+	ini_set('session.save_path', DATA_HOME.'/data/sessions');
 	session_start();
 }
 
@@ -147,7 +169,7 @@ if (ERROR_REPORTING != 'PHP_DEFAULT') {
 /**
  * Load the Zend_Acl
  */
-include APPLICATION_HOME.'/access_control.inc';
+include DATA_HOME.'/access_control.inc';
 
 /**
  * Grab a timestamp for calculating process time
