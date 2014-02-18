@@ -7,7 +7,7 @@
 use Application\Models\Image;
 use Application\Models\Media;
 
-$size = '60';
+$size = Media::SIZE_THUMBNAIL;
 $directory = DATA_HOME.'/data/uploads/'.$_SESSION['USER']->getUsername();
 
 preg_match(Media::REGEX_FILENAME_EXT, $_GET['image'], $matches);

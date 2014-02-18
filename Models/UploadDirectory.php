@@ -101,10 +101,11 @@ class UploadDirectory Implements \Countable, \IteratorAggregate
 			}
 		}
 
+		// Clean out temp files
+		foreach(glob($this->getDirectory().'/*/*.*') as $thumbnail) {
+			unlink($thumbnail);
+		}
 		if (empty($_SESSION['importErrors'])) {
-			foreach(glob($this->getDirectory().'/thumbnail/*.*') as $thumbnail) {
-				unlink($thumbnail);
-			}
 			header('Location: '.BASE_URL);
 			exit();
 		}
