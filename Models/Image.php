@@ -72,7 +72,7 @@ class Image extends Media
 
 		$dimensions = $size.'x'.$size;
 		$newFile = "$directory/$filename.png";
-		exec(IMAGEMAGICK."/convert $inputFile -resize '$dimensions' $newFile");
+		exec(IMAGEMAGICK."/convert $inputFile -channel rgba -alpha set -resize '$dimensions>' $newFile");
 	}
 
 	private function getFullPathForSize($size=null)
