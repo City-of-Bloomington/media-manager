@@ -91,6 +91,10 @@ header nav a { font-weight:bold; color:black; }
 #errorMessages { background-color:#fcc; padding:4px; border-radius:10px; }
 #errorMessages h2 { }
 
+.contactSheet .thumbnail {
+	width:200px; height:200px; float:left;
+}
+
 .pageNavigation ul { list-style-type:none; }
 .pageNavigation li { display:inline; margin-right:1em; }
 .pageNavigation .current { border:2px solid green; }

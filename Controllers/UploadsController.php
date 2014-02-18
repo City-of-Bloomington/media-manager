@@ -56,4 +56,19 @@ class UploadsController extends Controller
 		$this->template->setFilename('media');
 		$this->template->blocks[] = new Block('uploads/thumbnail.inc');
 	}
+
+	public function import()
+	{
+		if (isset($_POST['import']) && count($_POST['import'])) {
+			try {
+				$directory = new UploadDirectory($_SESSION['USER']);
+				$directory->import($_POST['import']);
+				header('Location: '.BASE_URL);
+				exit();
+			}
+			catch (\Exception $e) {
+				$_SESSION['errorMessages'][] = $e;
+			}
+		}
+	}
 }

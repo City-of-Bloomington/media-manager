@@ -19,6 +19,11 @@ define('BASE_URL','http://localhost/application');
 define('BASE_URI','/application');
 
 /**
+ * JavaScript Libraries
+ */
+define('YUI', BASE_URI.'/js/yui3/build');
+
+/**
  * Used when there's an error on the site.  The Framework will
  * print out a nice error message, encouraging users to report any problems
  * See: BLOSSOM/ITSFunctions.inc

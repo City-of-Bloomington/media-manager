@@ -14,7 +14,7 @@ use Blossom\Classes\Database;
 
 class Media extends ActiveRecord
 {
-	const SIZE_THUMBNAIL = 60;
+	const SIZE_THUMBNAIL = 80;
 	const SIZE_MEDIUM    = 350;
 	const REGEX_FILENAME_EXT = '/(^.*)\.([^\.]+)$/';
 

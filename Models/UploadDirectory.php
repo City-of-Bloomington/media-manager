@@ -72,13 +72,18 @@ class UploadDirectory Implements \Countable, \IteratorAggregate
 
 	/**
 	 * Loads all the new photos into the database
+	 *
+	 * The incoming $post array will have metadata for each
+	 * file, using the filename as the key
+	 *
+	 * @param array $post Array of metadata for files
 	 */
-	public function import()
+	public function import($post)
 	{
 		foreach(glob($this->getDirectory().'/*.*') as $file) {
 			$media = new Media();
-			$media->setPerson($this->user);
 			$media->setFile($file);
+			$media->handleUpdate($post[basename($file)]);
 			$media->save();
 		}
 
