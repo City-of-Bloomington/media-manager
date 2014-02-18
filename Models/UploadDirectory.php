@@ -76,22 +76,42 @@ class UploadDirectory Implements \Countable, \IteratorAggregate
 	 * The incoming $post array will have metadata for each
 	 * file, using the filename as the key
 	 *
+	 * Any problem importing a file should result in just leaving
+	 * that file in the uploads directory.
+	 *
 	 * @param array $post Array of metadata for files
 	 */
 	public function import($post)
 	{
 		foreach(glob($this->getDirectory().'/*.*') as $file) {
-			$media = new Media();
-			$media->setFile($file);
-			$media->handleUpdate($post[basename($file)]);
-			$media->save();
+			$filename = basename($file);
+
+			try {
+				$media = new Media();
+				$media->setFile($file);
+				if (isset($post[$filename])) {
+					$media->handleUpdate($post[$filename]);
+				}
+				$media->save();
+			}
+			catch (\Exception $e) {
+				$_SESSION['errorMessages'][] = $e;
+			}
 		}
 
-		foreach(glob($this->getDirectory().'/thumbnail/*.*') as $thumbnail) {
-			unlink($thumbnail);
+		if (empty($_SESSION['errorMessages'])) {
+			foreach(glob($this->getDirectory().'/thumbnail/*.*') as $thumbnail) {
+				unlink($thumbnail);
+			}
+			header('Location: '.BASE_URL);
+			exit();
+		}
+		else {
+			$_SESSION['errorMessages'] = [new \Exception('uploads/importErrors')];
+			header('Location: '.BASE_URL.'/uploads');
+			exit();
 		}
 	}
-
 
 	/**
 	 * @implements Countable
