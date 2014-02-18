@@ -10,7 +10,10 @@ use Application\Models\Media;
 use Blossom\Classes\View;
 ?>
 <h2><?php
-		echo View::escape($this->media->getTitle());
+		echo sprintf('(%s) %s',
+			$this->media->getId(),
+			View::escape($this->media->getTitle())
+		);
 
 		if (Person::isAllowed('media', 'edit')) {
 			$helper = $this->template->getHelper('buttonLink');

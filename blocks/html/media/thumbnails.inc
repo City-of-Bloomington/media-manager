@@ -19,6 +19,7 @@ if (count($this->media)) {
 
 		echo "
 		<div class=\"thumbnail\">
+			<h3>{$media->getId()}</h3>
 			<a href=\"".BASE_URI."/media/view?media_id={$media->getId()}\">
 				<img src=\"{$media->getUrl(Media::SIZE_THUMBNAIL)}\" />
 			</a>
@@ -28,4 +29,3 @@ if (count($this->media)) {
 	}
 }
 else { echo "<p>No Photos Found.</p>"; }
-?>
