@@ -8,8 +8,9 @@
 use Application\Models\Media;
 use Blossom\Classes\View;
 
-$title = View::escape($this->media->getTitle());
+$title       = View::escape($this->media->getTitle());
 $description = View::escape($this->media->getDescription());
+$tags        = View::escape(implode(', ', $this->media->getTags()));
 ?>
 <h2>Edit Media</h2>
 <form method="post" action="<?php echo BASE_URI; ?>/media/update">
@@ -19,6 +20,9 @@ $description = View::escape($this->media->getDescription());
 		<table>
 			<tr><td><label for="title">Title</label></td>
 				<td><input name="title" id="title" value="<?php $title; ?>" /></td>
+			</tr>
+			<tr><td><label for="tags">Tags</label></td>
+				<td><input name="tags" id="tags" value="<?php echo $tags; ?>" /></td>
 			</tr>
 		</table>
 		<div>

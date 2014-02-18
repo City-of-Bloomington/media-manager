@@ -31,3 +31,10 @@ use Blossom\Classes\View;
 	</a>
 </div>
 <p><?php echo View::escape($this->media->getDescription()); ?></p>
+<?php
+	$tags = $this->media->getTags();
+	if (count($tags)) {
+		$t = View::escape(implode(', ', $tags));
+		echo "<div>$t</div>";
+	}
+?>

@@ -22,6 +22,8 @@ class Media extends ActiveRecord
 
 	protected $person;
 
+	private $tags = [];
+
 	/**
 	 * Whitelist of accepted file types
 	 */
@@ -82,7 +84,7 @@ class Media extends ActiveRecord
 					$sql = 'select * from media where internalFilename like ?';
 				}
 				$result = $zend_db->createStatement($sql)->execute([$id]);
-				if ($result) {
+				if (count($result)) {
 					$this->exchangeArray($result->current());
 				}
 				else {
@@ -112,7 +114,25 @@ class Media extends ActiveRecord
 		if (!$this->data['media_type']) { throw new \Exception('media/missingMediaType'); }
 	}
 
-	public function save() { parent::save(); }
+	public function save()
+	{
+		parent::save();
+		$this->saveTags();
+	}
+
+	private function saveTags()
+	{
+		if ($this->getId()) {
+			$zend_db = Database::getConnection();
+
+			$zend_db->query('delete from media_tags where media_id=?', [$this->getId()]);
+
+			$query = $zend_db->createStatement('insert media_tags set media_id=?,tag_id=?');
+			foreach($this->getTags() as $tag) {
+				$query->execute([$this->getId(), $tag->getId()]);
+			}
+		}
+	}
 
 	/**
 	 * Deletes the file from the hard drive
@@ -165,7 +185,7 @@ class Media extends ActiveRecord
 	 */
 	public function handleUpdate($post)
 	{
-		$fields = ['title', 'description'];
+		$fields = ['title', 'description', 'tags'];
 		foreach ($fields as $f) {
 			$set = 'set'.ucfirst($f);
 			$this->$set($post[$f]);
@@ -342,5 +362,44 @@ class Media extends ActiveRecord
 	{
 		$ext = self::getExtension($filename);
 		return array_key_exists(strtolower($ext),self::$extensions);
+	}
+
+	/**
+	 * Returns an array of tags with the tag_id as the key
+	 *
+	 * @return array
+	 */
+	public function getTags()
+	{
+		if (!count($this->tags)) {
+			$table = new TagTable();
+			$list = $table->find(['media_id'=>$this->getId()]);
+
+			foreach($list as $tag) {
+				$this->tags[$tag->getId()] = $tag;
+			}
+		}
+		return $this->tags;
+	}
+
+	/**
+	 * Takes a string of comma-separated tags
+	 *
+	 * @param string $string
+	 */
+	public function setTags($string)
+	{
+		foreach(Tag::tokenize($string) as $name) {
+			try {
+				$tag = new Tag($name);
+			}
+			catch (\Exception $e) {
+				$tag = new Tag();
+				$tag->setName($name);
+				$tag->save();
+			}
+
+			$this->tags[$tag->getId()] = $tag;
+		}
 	}
 }

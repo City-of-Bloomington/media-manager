@@ -9,9 +9,9 @@ namespace Application\Models;
 use Blossom\Classes\ActiveRecord;
 use Blossom\Classes\Database;
 
-class Department extends ActiveRecord
+class Tag extends ActiveRecord
 {
-	protected $tablename = 'departments';
+	protected $tablename = 'tags';
 
 	/**
 	 * Populates the object with data
@@ -34,17 +34,17 @@ class Department extends ActiveRecord
 			else {
 				$zend_db = Database::getConnection();
 				if (ActiveRecord::isId($id)) {
-					$sql = 'select * from departments where id=?';
+					$sql = 'select * from tags where id=?';
 				}
 				else {
-					$sql = 'select * from departments where name=?';
+					$sql = 'select * from tags where name=?';
 				}
 				$result = $zend_db->createStatement($sql)->execute([$id]);
 				if (count($result)) {
 					$this->exchangeArray($result->current());
 				}
 				else {
-					throw new Exception('departments/unknownDepartment');
+					throw new \Exception('tags/unknownTag');
 				}
 			}
 		}
@@ -67,7 +67,7 @@ class Department extends ActiveRecord
 	public function getId()   { return parent::get('id');   }
 	public function getName() { return parent::get('name'); }
 
-	public function setName($s) { parent::set('name', $s); }
+	public function setName($s) { parent::set('name', strtolower($s)); }
 
 	public function handleUpdate($post)
 	{
@@ -75,31 +75,30 @@ class Department extends ActiveRecord
 	}
 
 	//----------------------------------------------------------------
-	// Custom Functions
+	// Custom functions
 	//----------------------------------------------------------------
 	public function __toString() { return $this->getName(); }
 
-	/**
-	 * @return string
-	 */
-	public function getUrl() { return BASE_URL.'/departments/view?department_id='.$this->getId(); }
-	public function getUri() { return BASE_URI.'/departments/view?department_id='.$this->getId(); }
-
-	/**
-	 * @return Zend\Db\ResultSet
-	 */
-	public function getPeople()
-	{
-		$table = new PeopleTable();
-		return $table->find(['department_id'=>$this->getId()]);
-	}
-
-	/**
-	 * @return Zend\Db\ResultSet
-	 */
 	public function getMedia()
 	{
 		$table = new MediaTable();
-		return $table->find(['department_id'=>$this->getId()]);
+		return $table->find(['tag_id'=>$this->getId()]);
+	}
+
+	/**
+	 * @param string $string
+	 * @return array
+	 */
+	public static function tokenize($string)
+	{
+		$tags = [];
+		foreach (explode(',', $string) as $t) {
+			$t = strtolower(trim($t));
+			$t = preg_replace('/\s+/', ' ', $t);
+			if ($t) {
+				$tags[] = $t;
+			}
+		}
+		return $tags;
 	}
 }
