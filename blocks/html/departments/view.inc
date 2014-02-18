@@ -20,9 +20,3 @@ $name = View::escape($this->department->getName());
 		);
 	?>
 </h2>
-<?php
-	$this->people = $this->department->getPeople();
-	if (count($this->people)) {
-		include APPLICATION_HOME.'/blocks/html/people/list.inc';
-	}
-?>

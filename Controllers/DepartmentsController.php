@@ -8,6 +8,8 @@ namespace Application\Controllers;
 
 use Application\Models\Department;
 use Application\Models\DepartmentTable;
+use Application\Models\MediaTable;
+use Application\Models\PeopleTable;
 use Blossom\Classes\Controller;
 use Blossom\Classes\Block;
 
@@ -36,6 +38,20 @@ class DepartmentsController extends Controller
 	{
 		$department = $this->loadDepartment($_GET['department_id']);
 		$this->template->blocks[] = new Block('departments/view.inc', ['department'=>$department]);
+
+		$page = !empty($_GET['page']) ? (int)$_GET['page'] : 1;
+		$table = new MediaTable();
+		$media = $table->find(['department_id'=>$department->getId()], null, true);
+		$media->setCurrentPageNumber($page);
+		$media->setItemCountPerPage(20);
+		$this->template->blocks[] = new Block('media/thumbnails.inc', ['media'=>$media]);
+		$this->template->blocks[] = new Block('pageNavigation.inc', ['paginator'=>$media]);
+
+
+
+		$table = new PeopleTable();
+		$people = $table->find(['department_id'=>$department->getId()], null, true);
+		$this->template->blocks[] = new Block('people/list.inc', ['people'=>$people]);
 
 	}
 

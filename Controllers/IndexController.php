@@ -14,8 +14,5 @@ class IndexController extends Controller
 {
 	public function index()
 	{
-		$table = new MediaTable();
-		$list = $table->find();
-		$this->template->blocks[] = new Block('media/thumbnails.inc', ['media'=>$list]);
 	}
 }

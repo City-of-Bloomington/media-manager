@@ -93,4 +93,13 @@ class Department extends ActiveRecord
 		$table = new PeopleTable();
 		return $table->find(['department_id'=>$this->getId()]);
 	}
+
+	/**
+	 * @return Zend\Db\ResultSet
+	 */
+	public function getMedia()
+	{
+		$table = new MediaTable();
+		return $table->find(['department_id'=>$this->getId()]);
+	}
 }
