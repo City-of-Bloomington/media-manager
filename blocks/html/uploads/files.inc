@@ -6,8 +6,8 @@
  * @param Person $this->user
  * @param array $this->data
  */
-use Application\Models\Media;
-use Application\Models\UploadDirectory;
+namespace Application\Models;
+
 use Blossom\Classes\View;
 
 $directory = new UploadDirectory($this->user);
@@ -22,6 +22,8 @@ if (count($directory)) {
 			<tr><th></th>
 				<th>Title</th>
 				<th>Tags</th>
+				<th>Department</th>
+				<th></th>
 			</tr>
 		</thead>
 		<tbody>
@@ -30,14 +32,29 @@ if (count($directory)) {
 			foreach ($directory as $file) {
 				if ($file->isFile()) {
 					echo "
-					<tr><th rowspan=\"2\">
-							<img src=\"".BASE_URI."/uploads/thumbnail?image=$file\" />
-						</th>
-						<td><input name=\"import[$file][title]\" id=\"import_{$c}_title\" /></td>
-						<td><input name=\"import[$file][tags]\"  id=\"import_{$c}_tags\"  /></td>
-					</tr>
-					<tr><td colspan=\"2\">
-							<textarea name=\"import[$file][description]\" id=\"import_{$c}_description\" rows=\"3\" cols=\"60\"></textarea>
+					<tr><th><img src=\"".BASE_URI."/uploads/thumbnail?image=$file\" /></th>
+						<td><input name=\"import[$file][title]\" /></td>
+						<td><input name=\"import[$file][tags]\"  /></td>
+						<td><select name=\"import[$file][department_id]\">
+					";
+							$table = new DepartmentTable();
+							$list = $table->find();
+							foreach ($list as $d) {
+								$name = View::escape($d);
+								$selected = $_SESSION['USER']->getDepartment_id()==$d->getId()
+									? 'selected="selected"'
+									: '';
+								echo "<option value=\"{$d->getId()}\" $selected>$name</option>";
+							}
+					echo "
+							</select>
+						</td>
+						<td>
+					";
+							if (isset($_SESSION['importErrors']["$file"])) {
+								echo $_SESSION['importErrors']["$file"]->getMessage();
+							}
+					echo "
 						</td>
 					</tr>
 					";

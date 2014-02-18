@@ -83,6 +83,8 @@ class UploadDirectory Implements \Countable, \IteratorAggregate
 	 */
 	public function import($post)
 	{
+		if (isset($_SESSION['importErrors'])) { unset($_SESSION['importErrors']); }
+
 		foreach(glob($this->getDirectory().'/*.*') as $file) {
 			$filename = basename($file);
 
@@ -95,11 +97,11 @@ class UploadDirectory Implements \Countable, \IteratorAggregate
 				$media->save();
 			}
 			catch (\Exception $e) {
-				$_SESSION['errorMessages'][] = $e;
+				$_SESSION['importErrors'][$filename] = $e;
 			}
 		}
 
-		if (empty($_SESSION['errorMessages'])) {
+		if (empty($_SESSION['importErrors'])) {
 			foreach(glob($this->getDirectory().'/thumbnail/*.*') as $thumbnail) {
 				unlink($thumbnail);
 			}
