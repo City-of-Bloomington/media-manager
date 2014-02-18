@@ -29,8 +29,10 @@ create table media (
 	description text,
 	md5        varchar(32)  not null,
 	uploaded   datetime     not null,
-	person_id  int unsigned not null,
-	foreign key (person_id) references people(id)
+	person_id     int unsigned not null,
+	department_id int unsigned not null,
+	foreign key (person_id)     references people     (id),
+	foreign key (department_id) references departments(id)
 );
 
 create table tags (

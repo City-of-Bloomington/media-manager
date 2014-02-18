@@ -110,7 +110,9 @@ header nav a { font-weight:bold; color:black; }
 .tags .p0  a { font-size:50%;  color:#3b3131; }
 .tags a.current { color:#ee7d22; }
 
+.uploads { border:2px solid #ddd; }
 .uploads th { vertical-align:middle; }
-.uploads td { vertical-align:top; }
+.uploads td { vertical-align:top; border-bottom:2px solid #ddd; }
+
 tr.current { background-color:#ccc; }
 a.current { font-weight:bold; }

@@ -10,10 +10,7 @@ use Application\Models\Media;
 use Blossom\Classes\View;
 ?>
 <h2><?php
-		echo sprintf('(%s) %s',
-			$this->media->getId(),
-			View::escape($this->media->getTitle())
-		);
+		echo "{$this->media->getId()} ";
 
 		if (Person::isAllowed('media', 'edit')) {
 			$helper = $this->template->getHelper('buttonLink');
@@ -30,11 +27,29 @@ use Blossom\Classes\View;
 		<img src="<?php echo $this->media->getUrl(Media::SIZE_MEDIUM); ?>" />
 	</a>
 </div>
-<p><?php echo View::escape($this->media->getDescription()); ?></p>
-<?php
-	$tags = $this->media->getTags();
-	if (count($tags)) {
-		$t = View::escape(implode(', ', $tags));
-		echo "<div>$t</div>";
-	}
-?>
+<table>
+	<tr><th>Title</th>
+		<td><?php echo View::escape($this->media->getTitle()); ?></td>
+	</tr>
+	<tr><th>Department</th>
+		<td><?php
+				$dept = $this->media->getDepartment();
+				$name = View::escape($dept);
+				echo "<a href=\"{$dept->getUri()}\">$name</a>";
+			?>
+		</td>
+	</tr>
+	<tr><th>Tags</th>
+		<td><?php
+				$tags = $this->media->getTags();
+				if (count($tags)) {
+					$t = View::escape(implode(', ', $tags));
+					echo "<div>$t</div>";
+				}
+			?>
+		</td>
+	</tr>
+	<tr><th>Description</th>
+		<td><?php echo View::escape($this->media->getDescription()); ?></td>
+	</tr>
+</table>

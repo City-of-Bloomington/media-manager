@@ -5,6 +5,7 @@
  * @author Cliff Ingham <inghamn@bloomington.in.gov>
  * @param Media $this->media
  */
+use Application\Models\DepartmentTable;
 use Application\Models\Media;
 use Blossom\Classes\View;
 
@@ -24,6 +25,21 @@ $tags        = View::escape(implode(', ', $this->media->getTags()));
 			<tr><td><label for="tags">Tags</label></td>
 				<td><input name="tags" id="tags" value="<?php echo $tags; ?>" /></td>
 			</tr>
+			<tr><td><label for="department_id">Department</label></td>
+				<td><select name="department_id" id="department_id">
+					<?php
+						$table = new DepartmentTable();
+						$list = $table->find();
+						foreach ($list as $d) {
+							$name = View::escape($d);
+							$selected = $this->media->getDepartment_id()==$d->getId()
+								? 'selected="selected"'
+								: '';
+							echo "<option value=\"{$d->getId()}\" $selected>$name</option>";
+						}
+					?>
+					</select>
+				</td>
 		</table>
 		<div>
 			<div><label for="description">Description</label></div>

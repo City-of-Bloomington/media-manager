@@ -21,6 +21,7 @@ class Media extends ActiveRecord
 	protected $tablename = 'media';
 
 	protected $person;
+	protected $department;
 
 	private $tags = [];
 
@@ -96,6 +97,7 @@ class Media extends ActiveRecord
 			// This is where the code goes to generate a new, empty instance.
 			// Set any default values for properties that need it here
 			$this->setUploaded('now');
+
 			if (isset($_SESSION['USER'])) {
 				$this->setPerson($_SESSION['USER']);
 			}
@@ -112,6 +114,11 @@ class Media extends ActiveRecord
 		if (!$this->data['filename'])   { throw new \Exception('media/missingFilename');  }
 		if (!$this->data['mime_type'])  { throw new \Exception('media/missingMimeType');  }
 		if (!$this->data['media_type']) { throw new \Exception('media/missingMediaType'); }
+
+		if (!$this->getPerson_id()) { $this->setPerson($_SESSION['USER']); }
+		if (!$this->getDepartment_id()) {
+			$this->setDepartment_id($this->getPerson()->getDepartment_id());
+		}
 	}
 
 	public function save()
@@ -165,15 +172,19 @@ class Media extends ActiveRecord
 	public function getMd5()         { return parent::get('md5');         }
 	public function getTitle()       { return parent::get('title');       }
 	public function getDescription() { return parent::get('description'); }
-	public function getPerson_id()   { return parent::get('person_id');   }
-	public function getPerson()      { return parent::getForeignKeyObject(__namespace__.'\Person', 'person_id'); }
+	public function getPerson_id()     { return parent::get('person_id');   }
+	public function getDepartment_id() { return parent::get('department_id'); }
+	public function getPerson()        { return parent::getForeignKeyObject(__namespace__.'\Person', 'person_id'); }
+	public function getDepartment()    { return parent::getForeignKeyObject(__namespace__.'\Department', 'department_id'); }
 	public function getUploaded($f=null, DateTimeZone $tz=null) { return parent::getDateData('uploaded', $f, $tz); }
 
 	public function setMd5        ($s) { parent::set('md5',         $s); }
 	public function setTitle      ($s) { parent::set('title',       $s); }
 	public function setDescription($s) { parent::set('description', $s); }
-	public function setPerson_id  ($i) { parent::setForeignKeyField (__namespace__.'\Person', 'person_id', $i); }
-	public function setPerson     ($o) { parent::setForeignKeyObject(__namespace__.'\Person', 'person_id', $o);  }
+	public function setPerson_id    ($i) { parent::setForeignKeyField (__namespace__.'\Person', 'person_id', $i); }
+	public function setDepartment_id($i) { parent::setForeignKeyField (__namespace__.'\Department', 'department_id', $i); }
+	public function setPerson       ($o) { parent::setForeignKeyObject(__namespace__.'\Person', 'person_id', $o);  }
+	public function setDepartment   ($o) { parent::setForeignKeyObject(__namespace__.'\Department', 'department_id', $o); }
 	public function setUploaded   ($d) { parent::setDateData('uploaded', $d); }
 
 
@@ -185,10 +196,12 @@ class Media extends ActiveRecord
 	 */
 	public function handleUpdate($post)
 	{
-		$fields = ['title', 'description', 'tags'];
+		$fields = ['title', 'description', 'tags', 'department_id'];
 		foreach ($fields as $f) {
-			$set = 'set'.ucfirst($f);
-			$this->$set($post[$f]);
+			if (isset($post[$f])) {
+				$set = 'set'.ucfirst($f);
+				$this->$set($post[$f]);
+			}
 		}
 	}
 

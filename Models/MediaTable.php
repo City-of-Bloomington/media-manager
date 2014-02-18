@@ -19,11 +19,6 @@ class MediaTable extends TableGateway
 		if (count($fields)) {
 			foreach ($fields as $key=>$value) {
 				switch ($key) {
-					case 'department_id':
-						$select->join(['p'=>'people'], 'media.person_id=p.id', []);
-						$select->where(['p.department_id'=>$value]);
-						break;
-
 					default:
 						$select->where([$key=>$value]);
 				}
