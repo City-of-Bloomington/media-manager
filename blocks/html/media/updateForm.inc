@@ -14,7 +14,7 @@ $description = View::escape($this->media->getDescription());
 $tags        = View::escape(implode(', ', $this->media->getTags()));
 ?>
 <h2>Edit Media</h2>
-<form method="post" action="<?php echo BASE_URI; ?>/media/update">
+<form method="post" action="<?php echo BASE_URI; ?>/media/update" enctype="multipart/form-data">
 	<fieldset>
 		<input name="media_id" type="hidden" value="<?php echo $this->media->getId(); ?>" />
 
@@ -50,7 +50,11 @@ $tags        = View::escape(implode(', ', $this->media->getTags()));
 			echo $helper->saveAndCancelButtons(BASE_URI.'/media/view?media_id='.$this->media->getId());
 		?>
 	</fieldset>
+	<fieldset>
+		<legend>Upload a new version of this file</legend>
+		<input type="file" name="mediafile" />
+		<div class="medium">
+			<img src="<?php echo $this->media->getUri(Media::SIZE_MEDIUM); ?>" />
+		</div>
+	</fieldset>
 </form>
-<div class="medium">
-	<img src="<?php echo $this->media->getUri(Media::SIZE_MEDIUM); ?>" />
-</div>

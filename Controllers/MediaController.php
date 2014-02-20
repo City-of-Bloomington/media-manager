@@ -65,6 +65,9 @@ class MediaController extends Controller
 		if (isset($_POST['title'])) {
 			try {
 				$media->handleUpdate($_POST);
+				if (isset($_FILES['mediafile']) && is_uploaded_file($_FILES['mediafile']['tmp_name'])) {
+					$media->setFile($_FILES['mediafile']);
+				}
 				$media->save();
 				header('Location: '.BASE_URL.'/media/view?media_id='.$media->getId());
 				exit();
@@ -75,5 +78,13 @@ class MediaController extends Controller
 		}
 
 		$this->template->blocks[] = new Block('media/updateForm.inc', ['media'=>$media]);
+	}
+
+	public function delete()
+	{
+		$media = $this->loadMedia($_GET['media_id']);
+		$media->delete();
+		header('Location: '.BASE_URL);
+		exit();
 	}
 }

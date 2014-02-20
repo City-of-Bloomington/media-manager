@@ -150,13 +150,19 @@ class Media extends ActiveRecord
 	 */
 	public function delete()
 	{
-		$this->deleteDerivatives();
-		unlink(DATA_HOME."/data/media/{$this->getDirectory()}/{$this->getInternalFilename()}");
-		parent::delete();
+		if ($this->getId()) {
+			$zend_db = Database::getConnection();
+			$zend_db->query('delete from media_tags where media_id=?')->execute([$this->getId()]);
 
-		$search = new Search();
-		$search->remove($this);
-		$search->commit();
+			$this->deleteDerivatives();
+
+			unlink(DATA_HOME."/data/media/{$this->getDirectory()}/{$this->getInternalFilename()}");
+			parent::delete();
+
+			$search = new Search();
+			$search->remove($this);
+			$search->commit();
+		}
 	}
 
 	/**
@@ -274,6 +280,8 @@ class Media extends ActiveRecord
 		if (!is_file($newFile)) {
 			throw new \Exception('media/badServerPermissions');
 		}
+
+		$this->deleteDerivatives();
 	}
 
 	/**

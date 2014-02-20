@@ -19,6 +19,11 @@ use Blossom\Classes\View;
 				$this->_('edit_media'),
 				'edit'
 			);
+			echo $helper->buttonLink(
+				BASE_URI.'/media/delete?media_id='.$this->media->getId(),
+				$this->_('delete_media'),
+				'delete'
+			);
 		}
 	?>
 </h2>
