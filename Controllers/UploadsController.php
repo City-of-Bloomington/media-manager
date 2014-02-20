@@ -59,16 +59,44 @@ class UploadsController extends Controller
 
 	public function import()
 	{
+		if (isset($_SESSION['importErrors'])) { unset($_SESSION['importErrors']); }
+
 		if (isset($_POST['import']) && count($_POST['import'])) {
-			try {
-				$directory = new UploadDirectory($_SESSION['USER']);
-				$directory->import($_POST['import']);
-				header('Location: '.BASE_URL);
-				exit();
-			}
-			catch (\Exception $e) {
-				$_SESSION['errorMessages'][] = $e;
-			}
+			$directory = new UploadDirectory($_SESSION['USER']);
+			$errors = $directory->import($_POST['import']);
 		}
+
+		if (empty($errors)) {
+			header('Location: '.BASE_URL);
+			exit();
+		}
+		else {
+			$_SESSION['errorMessages'] = [new \Exception('uploads/importErrors')];
+			$_SESSION['importErrors'] = $errors;
+			header('Location: '.BASE_URL.'/uploads');
+			exit();
+		}
+	}
+
+	/**
+	 * Deletes one or all files in the uploads directory
+	 *
+	 * If you provide a filename (no path information - just the basename),
+	 * this will delete that file.
+	 * Otherwise, it will delete all files in the user's upload directory
+	 *
+	 * @param string $file File to delete
+	 */
+	public function delete()
+	{
+		$uploads = new UploadDirectory($_SESSION['USER']);
+		if (isset($_GET['file'])) {
+			$uploads->delete($_GET['file']);
+		}
+		else {
+			$uploads->delete();
+		}
+		header('Location: '.BASE_URL.'/uploads');
+		exit();
 	}
 }

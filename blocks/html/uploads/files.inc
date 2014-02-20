@@ -13,7 +13,16 @@ use Blossom\Classes\View;
 $directory = new UploadDirectory($this->user);
 if (count($directory)) {
 ?>
-<h2>Files ready to import</h2>
+<h2>Files ready to import
+	<?php
+		$helper = $this->template->getHelper('buttonLink');
+		echo $helper->buttonLink(
+			BASE_URI.'/uploads/delete',
+			'Delete All',
+			'delete'
+		);
+	?>
+</h2>
 <form method="post" action="<?php echo BASE_URI; ?>/uploads/import">
 	<fieldset>
 		<button type="submit"><i class="fa fa-upload"></i> Import</button>
@@ -23,6 +32,7 @@ if (count($directory)) {
 				<th>Title</th>
 				<th>Tags</th>
 				<th>Department</th>
+				<th></th>
 				<th></th>
 			</tr>
 		</thead>
@@ -54,8 +64,14 @@ if (count($directory)) {
 							if (isset($_SESSION['importErrors']["$file"])) {
 								echo $_SESSION['importErrors']["$file"]->getMessage();
 							}
+							$deleteButton = $helper->buttonLink(
+								BASE_URI."/uploads/delete?file=$file",
+								'Delete File',
+								'delete'
+							);
 					echo "
 						</td>
+						<td>$deleteButton</td>
 					</tr>
 					";
 				}

@@ -83,8 +83,7 @@ class UploadDirectory Implements \Countable, \IteratorAggregate
 	 */
 	public function import($post)
 	{
-		if (isset($_SESSION['importErrors'])) { unset($_SESSION['importErrors']); }
-
+		$errors = [];
 		foreach(glob($this->getDirectory().'/*.*') as $file) {
 			$filename = basename($file);
 
@@ -97,7 +96,7 @@ class UploadDirectory Implements \Countable, \IteratorAggregate
 				$media->save();
 			}
 			catch (\Exception $e) {
-				$_SESSION['importErrors'][$filename] = $e;
+				$errors[$filename] = $e;
 			}
 		}
 
@@ -105,14 +104,41 @@ class UploadDirectory Implements \Countable, \IteratorAggregate
 		foreach(glob($this->getDirectory().'/*/*.*') as $thumbnail) {
 			unlink($thumbnail);
 		}
-		if (empty($_SESSION['importErrors'])) {
-			header('Location: '.BASE_URL);
-			exit();
+		return $errors;
+	}
+
+	/**
+	 * Deletes one or all files in the uploads directory
+	 *
+	 * If you provide a filename (no path information - just the basename),
+	 * this will delete that file.
+	 * Otherwise, it will delete all files in the user's upload directory
+	 *
+	 * @param string $file File to delete
+	 */
+	public function delete($file=null)
+	{
+		$dir = $this->getDirectory();
+		if ($file) {
+			// WARNING
+			// We're going to be doing filesystem work with user-provided strings
+			// You must be absolutely sure, the string is safe to use as a file.
+			// We do not want users to be able to traverse the directory structure.
+			// They should only be able to delete files in their own directory
+
+			$file = str_replace('/', '', $file);
+			$path = "$dir/$file";
+
+			if (is_file($path)) {
+				unlink($path);
+
+				preg_match(Media::REGEX_FILENAME_EXT, $file, $matches);
+				foreach (glob("$dir/*/$matches[1].*") as $f) { unlink($f); }
+			}
 		}
 		else {
-			$_SESSION['errorMessages'] = [new \Exception('uploads/importErrors')];
-			header('Location: '.BASE_URL.'/uploads');
-			exit();
+			foreach(glob("$dir/*.*"  ) as $f) { unlink($f); }
+			foreach(glob("$dir/*/*.*") as $f) { unlink($f); }
 		}
 	}
 
