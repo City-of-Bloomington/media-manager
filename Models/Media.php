@@ -296,7 +296,7 @@ class Media extends ActiveRecord
 	{
 		$filename = parent::get('internalFilename');
 		if (!$filename) {
-			$filename = uniqid().'.'.self::getExtension($this->data['filename']);
+			$filename = uniqid().'.'.self::getExtension($this->getFilename());
 			parent::set('internalFilename', $filename);
 		}
 		return $filename;

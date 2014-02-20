@@ -1,1 +1,1 @@
-full-width.inc
+two-column.inc
