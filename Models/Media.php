@@ -179,7 +179,6 @@ class Media extends ActiveRecord
 	// Generic Getters & Setters
 	//----------------------------------------------------------------
 	public function getId()          { return parent::get('id');          }
-	public function getIssue_id()    { return parent::get('issue_id');    }
 	public function getFilename()    { return parent::get('filename');    }
 	public function getMime_type()   { return parent::get('mime_type');   }
 	public function getMedia_type()  { return parent::get('media_type');  }
