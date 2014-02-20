@@ -145,6 +145,9 @@ $config = [
 			'Application' => APPLICATION_HOME,
 			'Blossom'     => BLOSSOM,
 			'Zend'        => ZEND
+		],
+		'prefixes' => [
+			'Apache' => APPLICATION_HOME.'/libraries/solr-php-client/Apache'
 		]
 	]
 ];

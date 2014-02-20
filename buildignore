@@ -15,4 +15,4 @@ configuration.inc
 /libraries/zf2/resources/
 /libraries/zf2/tests/
 /public/skins/Font-Awesome/src/
-/public/js/vendor/yui3/src/
+/public/js/yui3/src/

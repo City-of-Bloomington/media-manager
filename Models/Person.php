@@ -7,6 +7,7 @@
 namespace Application\Models;
 use Blossom\Classes\ActiveRecord;
 use Blossom\Classes\Database;
+use Blossom\Classes\ExternalIdentity;
 
 class Person extends ActiveRecord
 {
@@ -74,12 +75,7 @@ class Person extends ActiveRecord
 		}
 	}
 
-	public function save()
-	{
-		parent::save();
-
-		if ($this->departmentChanged) { $this->saveDepartment(); }
-	}
+	public function save() { parent::save(); }
 
 	/**
 	 * Removes all the user account related fields from this Person
@@ -162,6 +158,7 @@ class Person extends ActiveRecord
 
 		$method = $this->getAuthenticationMethod();
 		if ($this->getUsername() && $method && $method != 'local') {
+			$method = "Blossom\\Classes\\$method";
 			$identity = new $method($this->getUsername());
 			$this->populateFromExternalIdentity($identity);
 		}
