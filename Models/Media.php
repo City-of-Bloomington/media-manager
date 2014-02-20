@@ -125,6 +125,10 @@ class Media extends ActiveRecord
 	{
 		parent::save();
 		$this->saveTags();
+
+		$search = new Search();
+		$search->add($this);
+		$search->commit();
 	}
 
 	private function saveTags()
@@ -149,6 +153,10 @@ class Media extends ActiveRecord
 		$this->deleteDerivatives();
 		unlink(DATA_HOME."/data/media/{$this->getDirectory()}/{$this->getInternalFilename()}");
 		parent::delete();
+
+		$search = new Search();
+		$search->remove($this);
+		$search->commit();
 	}
 
 	/**

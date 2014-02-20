@@ -25,7 +25,8 @@ class Search
 	 */
 	public static $searchableFields = [
 		'department_id' => 'Department',
-		'mime_type'     => 'Mime Type'
+		'mime_type'     => 'Mime Type',
+		'tag_id'        => 'Tag'
 	];
 
 	public function __construct()
@@ -64,6 +65,10 @@ class Search
 			$document->addField('person_id',        $entry->getPerson_id());
 			$document->addField('department_id',    $entry->getDepartment_id());
 			$document->addField('uploaded', $entry->getUploaded(self::DATE_FORMAT), \DateTimeZone::UTC);
+
+			foreach ($entry->getTags() as $tag) {
+				$document->addField('tag_id', $tag->getId());
+			}
 		}
 		else { throw new \Exception('search/unknownType'); }
 
@@ -123,12 +128,13 @@ class Search
 
 		// Facets
 		$additionalParameters['facet'] = 'true';
-		$additionalParameters['facet.field'] = ['department_id','mime_type'];
+		$additionalParameters['facet.field'] = ['department_id','mime_type', 'tag_id'];
 
 		// FQ
 		$fq = [];
 		if (!empty($get['department_id'])) { $fq[] = "department_id:$get[department_id]"; }
 		if (!empty($get['mime_type']    )) { $fq[] = "mime_type:$get[mime_type]";         }
+		if (!empty($get['tag_id']       )) { $fq[] = "tag_id:$get[tag_id]";               }
 		if (count($fq)) { $additionalParameters['fq'] = $fq; }
 
 		$solrResponse = $this->solrClient->search($query, $startingPage, $rows, $additionalParameters);

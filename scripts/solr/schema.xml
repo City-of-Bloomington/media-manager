@@ -169,9 +169,11 @@
 
 	<field name="person_id"        type="int"     indexed="true" stored="false" />
 	<field name="department_id"    type="int"     indexed="true" stored="false" />
+	<field name="tag_id"           type="int"     indexed="true" stored="false" multiValued="true" />
 	<!-- Sortable string values for *_id fields -->
 	<field name="person"           type="string"  indexed="true" stored="false" />
 	<field name="department"       type="string"  indexed="true" stored="false" />
+	<field name="tag"              type="string"  indexed="true" stored="false" multiValued="true" />
 
 	<field name="_version_" type="string" indexed="true" stored="true" multiValued="false" />
 	<dynamicField name="*" type="string" indexed="true" stored="true" />
