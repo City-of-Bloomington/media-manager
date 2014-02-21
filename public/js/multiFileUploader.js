@@ -68,7 +68,7 @@ YUI().use('uploader', function(Y) {
 
 		Y.one('#uploadFilesButton').on('click', function () {
 			if (!uploadDone && uploader.get('fileList').length > 0) {
-				uploader.uploadAll('http://localhost/media-manager/uploads');
+				uploader.uploadAll(APPLICATION.BASE_URL + '/uploads');
 			}
 		});
 	}
