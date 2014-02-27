@@ -1,0 +1,6 @@
+name = Media Manager
+description = Use an external media management application and CDN
+core = 7.x
+version = 7.x-0.1
+configure = admin/config/services/mediamanager
+dependencies[] = field_ui

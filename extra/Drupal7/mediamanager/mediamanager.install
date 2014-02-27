@@ -1,0 +1,19 @@
+<?php
+function mediamanager_install()   { }
+function mediamanager_uninstall() { }
+
+function mediamanager_field_schema($field)
+{
+	if ($field['type'] == 'mediamanager') {
+		return [
+			'columns'=>[
+				'media_id' => [
+					'type'     => 'varchar',
+					'length'   => '128',
+					'not null' => false
+				]
+			],
+			'indexes'=>['media_id'=>['media_id']]
+		];
+	}
+}

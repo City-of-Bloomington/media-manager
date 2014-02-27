@@ -1,0 +1,193 @@
+<?php
+/**
+ * @copyright 2014 City of Bloomington, Indiana
+ * @license http://www.gnu.org/licenses/agpl.txt GNU/AGPL, see LICENSE.txt
+ * @author Cliff Ingham <inghamn@bloomington.in.gov>
+ */
+function mediamanager_admin_form()
+{
+	return system_settings_form([
+		'mediamanager_url'=>[
+			'#type'          => 'textfield',
+			'#default_value' => variable_get('mediamanager_url'),
+			'#title'         => 'Media Manager URL',
+			'#description'   => 'The url of your installed Media Manager web application',
+			'#required'      => true
+		],
+		'mediamanager_sizes'=>[
+			'#type'          => 'textarea',
+			'#rows'          => 6,
+			'#cols'          => 60,
+			'#default_value' => variable_get('mediamanager_sizes'),
+			'#title'         => 'Media Manager Sizes',
+			'#description'   => 'The names images sizes for your site'
+		]
+	]);
+}
+
+function mediamanager_admin_validate($form, &$form_state)
+{
+	$string = $form_state['values']['mediamanager_sizes'];
+	if (!empty(trim($string))) {
+		$sizes = json_decode($string);
+		if ($sizes) {
+			$form_state['values']['mediamanager_sizes'] = json_encode($sizes, JSON_PRETTY_PRINT);
+		}
+		else {
+			$form_state['values']['mediamanager_sizes'] = '';
+			form_set_error('mediamanager_sizes', 'Invalid JSON for size definition');
+		}
+	}
+}
+
+function mediamanager_menu()
+{
+	return [
+		'admin/config/services/mediamanager' => [
+			'title'           => 'Media manager settings',
+			'description'     => 'Settings for the Media Manager module',
+			'page callback'   => 'drupal_get_form',
+			'page arguments'  => ['mediamanager_admin_form'],
+			'access arguments'=> ['administer site configuration'],
+			'type'            => MENU_NORMAL_ITEM
+		]
+	];
+}
+
+function mediamanager_field_info()
+{
+	return [
+		'mediamanager' => [
+			'label'            => t('Media Manager'),
+			'description'      => t('Media from external manager'),
+			'default_widget'   => 'mediamanager_mediaChooser',
+			'default_formatter'=> 'mediamanager_mediaFormatter'
+		]
+	];
+}
+
+function mediamanager_field_widget_info()
+{
+	return [
+		'mediamanager_mediaChooser' => [
+			'label'         => t('External media'),
+			'field types'   => ['mediamanager']
+		]
+	];
+}
+
+function mediamanager_field_widget_form(&$form, &$form_state, &$field, &$instance, &$langcode, &$items, &$delta, &$element)
+{
+	if ($instance['widget']['type'] == 'mediamanager_mediaChooser') {
+		return [
+			'media_id' => [
+				'#type'          => 'textfield',
+				'#title'         => isset($instance['label']) ? $instance['label'] : 'Media ID',
+				'#default_value' => isset($items[$delta])     ? $items[$delta]     : null
+			]
+		];
+	}
+}
+
+function mediamanager_field_is_empty($item, $field)
+{
+	if ($field['type'] == 'mediamanager') {
+		return empty($item['media_id']);
+	}
+}
+
+function mediamanager_field_formatter_info()
+{
+	return [
+		'mediamanager_mediaFormatter' => [
+			'label'       => t('Default'),
+			'field types' => ['mediamanager'],
+			'settings'    => ['size'=>'']
+		]
+	];
+}
+
+function mediamanager_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state)
+{
+	$display = $instance['display'][$view_mode];
+	$settings = $display['settings'];
+
+	switch ($display['type']) {
+		case 'mediamanager_mediaFormatter':
+			$options = [];
+			$json = json_decode(variable_get('mediamanager_sizes'));
+			if ($json) {
+				foreach ($json as $name=>$size) {
+					$options[$name] = $name;
+				}
+			}
+
+			$form['size'] = [
+				'#title' => '',
+				'#type' => 'select',
+				'#empty_option' => t('None (original image)'),
+				'#default_value' => $settings['size'],
+				'#options'=> $options
+			];
+		break;
+	}
+	return $form;
+}
+
+function mediamanager_field_formatter_settings_summary($field, $instance, $view_mode)
+{
+	$settings = $instance['display'][$view_mode]['settings'];
+	return empty($settings['size']) ? 'Original Image' : 'Media Size: '.$settings['size'];
+}
+
+function mediamanager_field_formatter_view($type, $entity, $field, $instance, $lang, $items, $display)
+{
+	$element = [];
+
+	switch ($display['type']) {
+		case 'mediamanager_mediaFormatter':
+			$mediamanager_url = variable_get('mediamanager_url');
+
+			foreach ($items as $delta=>$item) {
+				$url = $mediamanager_url.'/media/view?format=json&media_id='.$item['media_id'];
+				$response = drupal_http_request($url);
+				$media = json_decode($response->data);
+
+				$element[$delta] = [
+					'#theme' => 'mediamanager_media',
+					'#media' => $media,
+					'#size'  => $display['settings']['size']
+				];
+			}
+		break;
+	}
+	return $element;
+}
+
+function mediamanager_theme()
+{
+	return [
+		'mediamanager_media'=>[
+			'variables'=>['media'=>null, 'size'=>null]
+		]
+	];
+}
+
+function theme_mediamanager_media($var)
+{
+	$mediamanager_url = variable_get('mediamanager_url');
+	$d = date('Y/n/j', strtotime($var['media']->uploaded));
+
+	if ($var['size']) {
+		$json = json_decode(variable_get('mediamanager_sizes'));
+		$size = $json->$var['size'];
+
+		$f = explode('.', $var['media']->internalFilename);
+		$var['path'] = "$mediamanager_url/m/$d/$size/$f[0].png";
+	}
+	else {
+		$var['path'] = "$mediamanager_url/m/$d/{$var['media']->filename}";
+	}
+
+	return theme('image', $var);
+}
