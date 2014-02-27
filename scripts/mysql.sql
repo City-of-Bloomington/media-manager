@@ -46,3 +46,9 @@ create table media_tags (
 	foreign key (media_id) references media(id),
 	foreign key (tag_id)   references tags (id)
 );
+
+create table derivatives (
+	id   int unsigned not null primary key auto_increment,
+	name varchar(128) not null,
+	size int unsigned not null
+);

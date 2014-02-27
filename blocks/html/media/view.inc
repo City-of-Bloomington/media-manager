@@ -7,6 +7,7 @@
  */
 use Application\Models\Person;
 use Application\Models\Media;
+use Application\Models\DerivativesTable;
 use Blossom\Classes\View;
 ?>
 <h2><?php
@@ -58,3 +59,19 @@ use Blossom\Classes\View;
 		<td><?php echo View::escape($this->media->getDescription()); ?></td>
 	</tr>
 </table>
+
+<?php
+	$table = new DerivativesTable();
+	$sizes = $table->find();
+	if (count($sizes)) {
+		echo '<table>';
+		foreach ($sizes as $size) {
+			$name = View::escape($size->getName());
+			$url = $this->media->getUrl($size->getSize());
+			echo "
+			<tr><th>$name</th><td><a href=\"$url\">$url</a></td></tr>
+			";
+		}
+		echo '</table>';
+	}
+?>

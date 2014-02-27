@@ -14,8 +14,11 @@ use Blossom\Classes\Database;
 
 class Media extends ActiveRecord
 {
+	// These are the absolute minimum of sizes needed to be declared
+	// The rest of the sizes will be added to the database by users
 	const SIZE_THUMBNAIL = 80;
 	const SIZE_MEDIUM    = 350;
+	
 	const REGEX_FILENAME_EXT = '/(^.*)\.([^\.]+)$/';
 
 	protected $tablename = 'media';

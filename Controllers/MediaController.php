@@ -47,14 +47,22 @@ class MediaController extends Controller
 		$this->template->setFilename('media');
 		try {
 			$media = new Media($_REQUEST['media_id']);
+
 			$size = !empty($_REQUEST['size']) ? (int)$_REQUEST['size'] : null;
-			$this->template->blocks[] = new Block(
-				'media/image.inc',
-				array('media'=>$media, 'size'=>$size)
-			);
+			if (Media::isValidSize($size)) {
+				$this->template->blocks[] = new Block(
+					'media/image.inc',
+					array('media'=>$media, 'size'=>$size)
+				);
+			}
+			else {
+				header('HTTP/1.1 404 Not Found', true, 404);
+				exit();
+			}
 		}
 		catch (Exception $e) {
 			header('HTTP/1.1 404 Not Found', true, 404);
+			exit();
 		}
 	}
 

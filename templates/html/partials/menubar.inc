@@ -9,7 +9,8 @@ use Application\Models\Person;
 		'upload'    =>'uploads',
 		'department'=>'departments',
 		'person'    =>'people',
-		'user'      =>'users'
+		'user'      =>'users',
+		'derivative'=>'derivatives'
 	];
 	foreach ($routes as $singular=>$plural) {
 		if (Person::isAllowed($plural, 'index')) {

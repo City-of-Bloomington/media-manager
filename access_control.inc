@@ -24,6 +24,7 @@ $ZEND_ACL->addResource(new Resource('login'));
 $ZEND_ACL->addResource(new Resource('departments'));
 $ZEND_ACL->addResource(new Resource('media'));
 $ZEND_ACL->addResource(new Resource('uploads'));
+$ZEND_ACL->addResource(new Resource('derivatives'));
 
 
 /**
