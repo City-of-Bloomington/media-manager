@@ -14,5 +14,5 @@ configuration.inc
 /libraries/zf2/documentation/
 /libraries/zf2/resources/
 /libraries/zf2/tests/
-/public/skins/Font-Awesome/src/
+/public/css/Font-Awesome/src/
 /public/js/yui3/src/
