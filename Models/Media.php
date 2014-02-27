@@ -18,7 +18,7 @@ class Media extends ActiveRecord
 	// The rest of the sizes will be added to the database by users
 	const SIZE_THUMBNAIL = 80;
 	const SIZE_MEDIUM    = 350;
-	
+
 	const REGEX_FILENAME_EXT = '/(^.*)\.([^\.]+)$/';
 
 	protected $tablename = 'media';
@@ -55,6 +55,23 @@ class Media extends ActiveRecord
 		#'swf' =>array('mime_type'=>'application/x-shockwave-flash','media_type'=>'attachment'),
 		#'eps' =>array('mime_type'=>'application/postscript','media_type'=>'attachment')
 	];
+
+	/**
+	 * Checks if the provided size is a known derivative size
+	 *
+	 * @param int $size
+	 * @return boolean
+	 */
+	public static function isValidSize($size)
+	{
+		if ($size == self::SIZE_THUMBNAIL || $size == self::SIZE_MEDIUM) {
+			return true;
+		}
+
+		$table = new DerivativesTable();
+		$sizes = $table->find(['size'=>$size]);
+		return count($sizes) ? true : false;
+	}
 
 	/**
 	 * Populates the object with data
