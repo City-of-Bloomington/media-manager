@@ -34,7 +34,7 @@ $ZEND_ACL->allow(null,'login');
 
 // Permissions for unauthenticated browsing
 $ZEND_ACL->allow(null,
-				['index'],
+				['index', 'derivatives'],
 				['index']);
 $ZEND_ACL->allow(null, 'media', ['view', 'resize']);
 

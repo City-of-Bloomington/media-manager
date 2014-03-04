@@ -5,6 +5,7 @@
  * @author Cliff Ingham <inghamn@bloomington.in.gov>
  * @param Zend\Db\ResultSet $this->derivatives
  */
+use Application\Models\Media;
 use Application\Models\Person;
 use Blossom\Classes\View;
 
@@ -24,7 +25,8 @@ $userCanEdit = Person::isAllowed('derivatives', 'edit');
 	}
 ?>
 </h2>
-<ul>
+<ul><li>SIZE_THUMBNAIL (<?php echo Media::SIZE_THUMBNAIL; ?>)</li>
+	<li>SIZE_MEDIUM    (<?php echo Media::SIZE_MEDIUM; ?>)</li>
 <?php
 	foreach ($this->derivatives as $s) {
 		$editButton = '';

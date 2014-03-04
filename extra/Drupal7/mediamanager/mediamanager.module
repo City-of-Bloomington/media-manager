@@ -13,30 +13,23 @@ function mediamanager_admin_form()
 			'#title'         => 'Media Manager URL',
 			'#description'   => 'The url of your installed Media Manager web application',
 			'#required'      => true
-		],
-		'mediamanager_sizes'=>[
-			'#type'          => 'textarea',
-			'#rows'          => 6,
-			'#cols'          => 60,
-			'#default_value' => variable_get('mediamanager_sizes'),
-			'#title'         => 'Media Manager Sizes',
-			'#description'   => 'The names images sizes for your site'
 		]
 	]);
 }
 
+/**
+ * Verifies the connection to Media Manager
+ *
+ * @implements hook_admin_validate()
+ */
 function mediamanager_admin_validate($form, &$form_state)
 {
-	$string = $form_state['values']['mediamanager_sizes'];
-	if (!empty(trim($string))) {
-		$sizes = json_decode($string);
-		if ($sizes) {
-			$form_state['values']['mediamanager_sizes'] = json_encode($sizes, JSON_PRETTY_PRINT);
-		}
-		else {
-			$form_state['values']['mediamanager_sizes'] = '';
-			form_set_error('mediamanager_sizes', 'Invalid JSON for size definition');
-		}
+	// Make sure we can get back the media sizes
+	$url = $form_state['values']['mediamanager_url'];
+	$response = drupal_http_request($url);
+	$sizes = json_decode($response->data);
+	if (!count($sizes)) {
+		form_set_error('mediamanager_url', 'Cannot connect to Media Manager URL.  Make sure the URL is valid.');
 	}
 }
 
@@ -87,7 +80,7 @@ function mediamanager_field_widget_form(&$form, &$form_state, &$field, &$instanc
 				'#title'         => isset($instance['label']) ? $instance['label'] : 'Media ID',
 				'#default_value' => isset($items[$delta])     ? $items[$delta]     : null,
 				'#field_suffix'  => l('Media Manager', $url),
-				'#element_validate' => ['mediamanager_validate']
+				'#element_validate' => ['mediamanager_field_validate']
 			]
 		];
 	}
@@ -108,15 +101,22 @@ function mediamanager_field_validate($entity_type, $entity, $field, $instance, $
 {
 	foreach ($items as $delta=>$item) {
 		if (!empty($item['media_id'])) {
-			$id = trim($item['media_id']);
-
-			if (   preg_match('|media_id=(\d+)|',         $item['media_id'], $matches)
-				|| preg_match('|([0-9a-f]{13})(.\w+)?$|', $item['media_id'], $matches) ) {
-				$id = $matches[1];
+			$id = _mediamanager_get_valid_id($item['media_id']);
+			if (!$id) {
+				$errors[$field['field_name']][$lang][$delta][] = [
+					'error'   => 'unknownMedia',
+					'message' => 'The media id you provided is not valid'
+				];
 			}
+		}
+	}
+}
 
-			$media = _mediamanager_media_info($matches[1]);
-			$items[$delta]['media_id'] = !empty($media->id) ? $media->id : null;
+function mediamanager_field_presave($entity_type, $entity, $field, $instance, $lang, &$items)
+{
+	foreach ($items as $delta=>$item) {
+		if (!empty($item['media_id'])) {
+			$items[$delta]['media_id'] = _mediamanager_get_valid_id($item['media_id']);
 		}
 	}
 }
@@ -147,11 +147,8 @@ function mediamanager_field_formatter_settings_form($field, $instance, $view_mod
 	switch ($display['type']) {
 		case 'mediamanager_mediaFormatter':
 			$options = [];
-			$json = json_decode(variable_get('mediamanager_sizes'));
-			if ($json) {
-				foreach ($json as $name=>$size) {
-					$options[$name] = $name;
-				}
+			foreach (_mediamanager_sizes() as $name=>$size) {
+				$options[$name] = $name;
 			}
 
 			$form['size'] = [
@@ -223,6 +220,13 @@ function theme_mediamanager_media($var)
 	return theme('image', $var);
 }
 
+function _mediamanager_sizes()
+{
+	$url = variable_get('mediamanager_url').'/derivatives?format=json';
+	$response = drupal_http_request($url);
+	return json_decode($response->data);
+}
+
 /**
  * @param int|hex $id
  * @return StdObject JSON response from media manager
@@ -233,4 +237,33 @@ function _mediamanager_media_info($id)
 
 	$response = drupal_http_request($url);
 	return json_decode($response->data);
+}
+
+/**
+ * Validate user entered value and return media_id
+ *
+ * Returns null on validation error
+ *
+ * Users can enter ID in various ways:
+ * int:       22
+ * hex:       530778b93e0bf
+ * media URL: http://localhost/media-manager/media/view?media_id=3
+ * image url: http://localhost/media-manager/m/2014/2/21/350/530778b93e0bf.png
+ *
+ * @param string $id
+ * @return int
+ */
+function _mediamanager_get_valid_id($id)
+{
+	$id = trim($id);
+
+	if (   preg_match('|media_id=(\d+)|',         $id, $matches)
+		|| preg_match('|([0-9a-f]{13})(.\w+)?$|', $id, $matches) ) {
+		$id = $matches[1];
+	}
+
+	$media = _mediamanager_media_info($matches[1]);
+	if ($media) {
+		return $media->id;
+	}
 }
