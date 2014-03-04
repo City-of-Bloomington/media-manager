@@ -79,13 +79,45 @@ function mediamanager_field_widget_info()
 function mediamanager_field_widget_form(&$form, &$form_state, &$field, &$instance, &$langcode, &$items, &$delta, &$element)
 {
 	if ($instance['widget']['type'] == 'mediamanager_mediaChooser') {
+		$url = variable_get('mediamanager_url');
+
 		return [
 			'media_id' => [
 				'#type'          => 'textfield',
 				'#title'         => isset($instance['label']) ? $instance['label'] : 'Media ID',
-				'#default_value' => isset($items[$delta])     ? $items[$delta]     : null
+				'#default_value' => isset($items[$delta])     ? $items[$delta]     : null,
+				'#field_suffix'  => l('Media Manager', $url),
+				'#element_validate' => ['mediamanager_validate']
 			]
 		];
+	}
+}
+
+/**
+ * Validate user entered media_id
+ *
+ * Users can enter ID in various ways:
+ * int:       22
+ * hex:       530778b93e0bf
+ * media URL: http://localhost/media-manager/media/view?media_id=3
+ * image url: http://localhost/media-manager/m/2014/2/21/350/530778b93e0bf.png
+ *
+ * @implements hook_field_validate()
+ */
+function mediamanager_field_validate($entity_type, $entity, $field, $instance, $lang, &$items, &$errors)
+{
+	foreach ($items as $delta=>$item) {
+		if (!empty($item['media_id'])) {
+			$id = trim($item['media_id']);
+
+			if (   preg_match('|media_id=(\d+)|',         $item['media_id'], $matches)
+				|| preg_match('|([0-9a-f]{13})(.\w+)?$|', $item['media_id'], $matches) ) {
+				$id = $matches[1];
+			}
+
+			$media = _mediamanager_media_info($matches[1]);
+			$items[$delta]['media_id'] = !empty($media->id) ? $media->id : null;
+		}
 	}
 }
 
@@ -149,15 +181,14 @@ function mediamanager_field_formatter_view($type, $entity, $field, $instance, $l
 			$mediamanager_url = variable_get('mediamanager_url');
 
 			foreach ($items as $delta=>$item) {
-				$url = $mediamanager_url.'/media/view?format=json&media_id='.$item['media_id'];
-				$response = drupal_http_request($url);
-				$media = json_decode($response->data);
-
-				$element[$delta] = [
-					'#theme' => 'mediamanager_media',
-					'#media' => $media,
-					'#size'  => $display['settings']['size']
-				];
+				$media = _mediamanager_media_info($item['media_id']);
+				if ($media) {
+					$element[$delta] = [
+						'#theme' => 'mediamanager_media',
+						'#media' => $media,
+						'#size'  => $display['settings']['size']
+					];
+				}
 			}
 		break;
 	}
@@ -175,7 +206,7 @@ function mediamanager_theme()
 
 function theme_mediamanager_media($var)
 {
-	$mediamanager_url = variable_get('mediamanager_url');
+	$url = variable_get('mediamanager_url');
 	$d = date('Y/n/j', strtotime($var['media']->uploaded));
 
 	if ($var['size']) {
@@ -183,11 +214,23 @@ function theme_mediamanager_media($var)
 		$size = $json->$var['size'];
 
 		$f = explode('.', $var['media']->internalFilename);
-		$var['path'] = "$mediamanager_url/m/$d/$size/$f[0].png";
+		$var['path'] = "$url/m/$d/$size/$f[0].png";
 	}
 	else {
-		$var['path'] = "$mediamanager_url/m/$d/{$var['media']->filename}";
+		$var['path'] = "$url/m/$d/{$var['media']->filename}";
 	}
 
 	return theme('image', $var);
+}
+
+/**
+ * @param int|hex $id
+ * @return StdObject JSON response from media manager
+ */
+function _mediamanager_media_info($id)
+{
+	$url = variable_get('mediamanager_url')."/media/view?format=json&media_id=$id";
+
+	$response = drupal_http_request($url);
+	return json_decode($response->data);
 }
