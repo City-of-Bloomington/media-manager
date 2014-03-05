@@ -6,7 +6,6 @@
  */
 require_once __DIR__.'/../../configuration.inc';
 
-use Application\Models\Image;
 use Application\Models\Media;
 
 class MediaTest extends PHPUnit_Framework_TestCase
@@ -51,7 +50,7 @@ class MediaTest extends PHPUnit_Framework_TestCase
 		$thumbnail = __DIR__.'/60/Dan.png';
 		$this->filesToCleanUp[] = $thumbnail;
 
-		Image::saveDerivative($this->origFile, 60);
+		Media::saveDerivative($this->origFile, 60);
 		$this->assertTrue(file_exists($thumbnail), 'Thumbnail not generated');
 	}
 
@@ -82,10 +81,8 @@ class MediaTest extends PHPUnit_Framework_TestCase
 		$media = new Media();
 		$media->setFile($this->FILE);
 
-		$image = new Image($media);
-
 		ob_start();
-		$image->output($this->testSize);
+		$media->output($this->testSize);
 		ob_end_clean();
 
 		$newFile   = DATA_HOME."/data/media/{$media->getDirectory()}/{$media->getInternalFilename()}";
@@ -145,11 +142,11 @@ class MediaTest extends PHPUnit_Framework_TestCase
 		$newFile   = DATA_HOME."/data/media/{$media->getDirectory()}/{$media->getInternalFilename()}";
 		$thumbnail = DATA_HOME."/data/media/{$media->getDirectory()}/{$this->testSize}/{$media->getInternalFilename()}";
 		$temp = __DIR__."/temp.png";
-		#$this->filesToCleanUp[] = $newFile;
-		#$this->filesToCleanUp[] = $thumbnail;
-		#$this->filesToCleanUp[] = $temp;
+		$this->filesToCleanUp[] = $newFile;
+		$this->filesToCleanUp[] = $thumbnail;
+		$this->filesToCleanUp[] = $temp;
 
-		echo "Downloading {$media->getUrl($this->testSize)}\n";
+		#echo "Downloading {$media->getUrl($this->testSize)}\n";
 
 		$request = curl_init($media->getUrl($this->testSize));
 		curl_setopt($request, CURLOPT_RETURNTRANSFER, true);
@@ -159,8 +156,8 @@ class MediaTest extends PHPUnit_Framework_TestCase
 		$this->assertTrue(file_exists($temp), 'Thumbnail file not downloaded');
 
 		$info = getimagesize($temp);
-		echo "Generated thumbnail\n";
-		print_r($info);
+		#echo "Generated thumbnail\n";
+		#print_r($info);
 		$this->assertTrue(
 			($info[0]==$this->testSize || $info[1]==$this->testSize),
 			'Generated image is not the correct size'
