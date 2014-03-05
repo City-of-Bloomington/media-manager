@@ -20,7 +20,7 @@ $tags        = View::escape(implode(', ', $this->media->getTags()));
 
 		<table>
 			<tr><td><label for="title">Title</label></td>
-				<td><input name="title" id="title" value="<?php $title; ?>" /></td>
+				<td><input name="title" id="title" value="<?php echo $title; ?>" /></td>
 			</tr>
 			<tr><td><label for="tags">Tags</label></td>
 				<td><input name="tags" id="tags" value="<?php echo $tags; ?>" /></td>
