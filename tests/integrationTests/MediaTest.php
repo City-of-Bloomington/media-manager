@@ -14,6 +14,8 @@ class MediaTest extends PHPUnit_Framework_TestCase
 	private $testFile = '';
 	private $FILE = []; // stand-in for $_FILE
 	private $testSize = 60;
+	private $origFileWidth;
+	private $origFileHeight;
 
 	private $filesToCleanUp = [];
 
@@ -22,6 +24,9 @@ class MediaTest extends PHPUnit_Framework_TestCase
 		$this->origFile = __DIR__.'/Dan.png';
 		$this->testFile = __DIR__.'/test.png';
 		$this->FILE = array('tmp_name'=>$this->testFile,'name'=>'Dan.png');
+
+		$this->origFileWidth  = 1280;
+		$this->origFileHeight = 1024;
 	}
 
 	/**
@@ -71,6 +76,18 @@ class MediaTest extends PHPUnit_Framework_TestCase
 		$media->setFile($this->FILE);
 
 		$this->assertNotEmpty($media->getInternalFilename());
+
+		$newFile = DATA_HOME."/data/media/{$media->getDirectory()}/{$media->getInternalFilename()}";
+		$this->filesToCleanUp[] = $newFile;
+	}
+
+	public function testGetSizes()
+	{
+		$media = new Media();
+		$media->setFile($this->FILE);
+
+		$this->assertEquals($this->origFileWidth,  $media->getWidth());
+		$this->assertEquals($this->origFileHeight, $media->getHeight());
 
 		$newFile = DATA_HOME."/data/media/{$media->getDirectory()}/{$media->getInternalFilename()}";
 		$this->filesToCleanUp[] = $newFile;

@@ -45,6 +45,12 @@ use Blossom\Classes\View;
 			?>
 		</td>
 	</tr>
+	<tr><th>Filename</th>
+		<td><?php
+				echo View::escape($this->media->getFilename());
+			?>
+		</td>
+	</tr>
 	<tr><th>Tags</th>
 		<td><?php
 				$tags = $this->media->getTags();
@@ -54,6 +60,12 @@ use Blossom\Classes\View;
 				}
 			?>
 		</td>
+	</tr>
+	<tr><th>Size</th>
+		<td><?php echo "{$this->media->getWidth()}x{$this->media->getHeight()}"; ?></td>
+	</tr>
+	<tr><th>Format</th>
+		<td><?php echo $this->media->getMime_type(); ?></td>
 	</tr>
 	<tr><th>Description</th>
 		<td><?php echo View::escape($this->media->getDescription()); ?></td>

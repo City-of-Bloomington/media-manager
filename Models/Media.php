@@ -287,13 +287,12 @@ class Media extends ActiveRecord
 			throw new \Exception('media/unknownFileType');
 		}
 
-
 		// Move the file where it's supposed to go
-		$directory = $this->getDirectory();
-		if (!is_dir(DATA_HOME."/data/media/$directory")) {
-			mkdir  (DATA_HOME."/data/media/$directory",0777,true);
+		$newFile   = $this->getFullPath();
+		$directory = dirname($newFile);
+		if (!is_dir($directory)) {
+			mkdir  ($directory, 0777, true);
 		}
-		$newFile  = DATA_HOME."/data/media/$directory/{$this->getInternalFilename()}";
 		rename($tempFile, $newFile);
 		chmod($newFile, 0666);
 
@@ -306,7 +305,7 @@ class Media extends ActiveRecord
 	}
 
 	/**
-	 * Returns the path of the file, relative to /data/media
+	 * Returns the partial path of the file, relative to /data/media
 	 *
 	 * Media is stored in the data directory, outside of the web directory
 	 * This variable only contains the partial path.
@@ -337,6 +336,27 @@ class Media extends ActiveRecord
 			parent::set('internalFilename', $filename);
 		}
 		return $filename;
+	}
+
+	/**
+	 * Returns the full path to the file or derivative
+	 *
+	 * @return string
+	 */
+	private function getFullPath($size=null)
+	{
+		$size = (int)$size;
+
+		if ($size) {
+			preg_match(self::REGEX_FILENAME_EXT, $this->getInternalFilename(), $matches);
+			$filename = $matches[1];
+
+			return DATA_HOME."/data/media/{$this->getDirectory()}/$size/$filename.png";
+		}
+		else {
+			// Return the size of the original
+			return DATA_HOME."/data/media/{$this->getDirectory()}/{$this->getInternalFilename()}";
+		}
 	}
 
 	/**
@@ -519,7 +539,7 @@ class Media extends ActiveRecord
 	 */
 	public function getWidth($size=null)
 	{
-		return exec(IMAGEMAGICK."/identify -format '%w' ".$this->getFullPathForSize($size));
+		return exec(IMAGEMAGICK."/identify -format '%w' ".$this->getFullPath($size));
 	}
 
 	/**
@@ -530,23 +550,6 @@ class Media extends ActiveRecord
 	 */
 	public function getHeight($size=null)
 	{
-		return exec(IMAGEMAGICK."/identify -format '%h' ".$this->getFullPathForSize($size));
+		return exec(IMAGEMAGICK."/identify -format '%h' ".$this->getFullPath($size));
 	}
-
-	private function getFullPathForSize($size=null)
-	{
-		$size = (int)$size;
-
-		preg_match(Media::REGEX_FILENAME_EXT, $this->getInternalFilename(), $matches);
-		$filename = $matches[1];
-
-		if ($size) {
-			return "{$this->getDirectory()}/$size/$filename.png";
-		}
-		else {
-			// Return the size of the original
-			return "{$this->getDirectory()}/{$this->getInternalFilename()}";
-		}
-	}
-
 }

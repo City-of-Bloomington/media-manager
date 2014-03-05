@@ -17,7 +17,7 @@ class Search
 {
 	public $solrClient;
 
-	const ITEMS_PER_PAGE  = 10;
+	const ITEMS_PER_PAGE  = 12;
 	const DATE_FORMAT = 'Y-m-d\TH:i:s\Z';
 
 	/**
