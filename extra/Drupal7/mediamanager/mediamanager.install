@@ -1,6 +1,10 @@
 <?php
 function mediamanager_install()   { }
-function mediamanager_uninstall() { }
+
+function mediamanager_uninstall()
+{
+	variable_del('mediamanager_url');
+}
 
 function mediamanager_field_schema($field)
 {
