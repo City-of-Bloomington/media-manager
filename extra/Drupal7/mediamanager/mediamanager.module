@@ -25,9 +25,7 @@ function mediamanager_admin_form()
 function mediamanager_admin_form_validate($form, &$form_state)
 {
 	// Make sure we can get back the media sizes
-	$url = $form_state['values']['mediamanager_url'].'/derivatives?format=json';
-	$response = drupal_http_request($url);
-	$sizes = json_decode($response->data);
+	$sizes = _mediamanager_sizes();
 	if (!count($sizes)) {
 		form_set_error('mediamanager_url', 'Cannot connect to Media Manager URL.  Make sure the URL is valid.');
 	}
@@ -74,16 +72,15 @@ function mediamanager_field_widget_form(&$form, &$form_state, &$field, &$instanc
 	if ($instance['widget']['type'] == 'mediamanager_mediaChooser') {
 		$url = variable_get('mediamanager_url');
 
-		return [
-			'media_id' => [
-				'#type'          => 'textfield',
-				'#title'         => isset($instance['label']) ? $instance['label'] : 'Media ID',
-				'#default_value' => isset($items[$delta])     ? $items[$delta]     : null,
-				'#field_suffix'  => l('Media Manager', $url),
-				'#element_validate' => ['mediamanager_field_validate']
-			]
+		$element['media_id'] = [
+            '#type'          => 'textfield',
+            '#title'         => isset($instance['label']) ? $instance['label'] : 'Media ID',
+            '#default_value' => isset($items[$delta])     ? $items[$delta]     : null,
+            '#field_suffix'  => l('Media Manager', $url)
+            //'#element_validate' => ['mediamanager_field_validate']
 		];
 	}
+	return $element;
 }
 
 /**
@@ -207,7 +204,7 @@ function theme_mediamanager_media($var)
 	$d = date('Y/n/j', strtotime($var['media']->uploaded));
 
 	if ($var['size']) {
-		$json = json_decode(variable_get('mediamanager_sizes'));
+		$json = _mediamanager_sizes();
 		$size = $json->$var['size'];
 
 		$f = explode('.', $var['media']->internalFilename);
@@ -262,7 +259,7 @@ function _mediamanager_get_valid_id($id)
 		$id = $matches[1];
 	}
 
-	$media = _mediamanager_media_info($matches[1]);
+	$media = _mediamanager_media_info($id);
 	if ($media) {
 		return $media->id;
 	}
