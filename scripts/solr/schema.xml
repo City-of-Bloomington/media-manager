@@ -166,6 +166,7 @@
 
 	<copyField source="title"       dest="combined" />
 	<copyField source="description" dest="combined" />
+	<copyField source="filename"    dest="combined" />
 
 	<field name="person_id"        type="int"     indexed="true" stored="false" />
 	<field name="department_id"    type="int"     indexed="true" stored="false" />
