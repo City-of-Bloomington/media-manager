@@ -164,6 +164,10 @@
 	<field name="description" type="text_general" indexed="true" stored="false" />
 	<field name="combined"    type="text_general" indexed="true" stored="false" />
 
+	<field name="width"            type="int"     indexed="true" stored="false" />
+	<field name="height"           type="int"     indexed="true" stored="false" />
+	<field name="aspectRatio"      type="float"   indexed="true" stored="false" />
+
 	<copyField source="title"       dest="combined" />
 	<copyField source="description" dest="combined" />
 	<copyField source="filename"    dest="combined" />

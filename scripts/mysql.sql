@@ -31,6 +31,8 @@ create table media (
 	uploaded   datetime     not null,
 	person_id     int unsigned not null,
 	department_id int unsigned not null,
+	width         int unsigned,
+	height        int unsigned,
 	foreign key (person_id)     references people     (id),
 	foreign key (department_id) references departments(id)
 );

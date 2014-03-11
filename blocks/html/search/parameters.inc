@@ -9,11 +9,11 @@ use Application\Models\Search;
 use Blossom\Classes\Url;
 use Blossom\Classes\View;
 
-if (!empty($_GET['query'])
+if (!empty($_GET['search'])
 	|| isset($this->solrObject->responseHeader->params->fq)) {
 
-	$q = !empty($_GET['query'])
-		? 'Results for: '.View::escape($_GET['query'])
+	$q = !empty($_GET['search'])
+		? 'Results for: '.View::escape($_GET['search'])
 		: 'Current Search';
 	$fq = isset($this->solrObject->responseHeader->params->fq)
 		? $this->solrObject->responseHeader->params->fq
@@ -23,9 +23,20 @@ if (!empty($_GET['query'])
 	<div class=\"searchParameters\">
 		<h2>$q</h2>
 	";
-	if (count($fq)) {
-		$currentURL = new Url($_SERVER['SERVER_NAME'].$_SERVER['REQUEST_URI']);
 
+	$currentURL = new Url($_SERVER['SERVER_NAME'].$_SERVER['REQUEST_URI']);
+	$buttonHelper = $this->template->getHelper('buttonLink');
+
+	if (!empty($_GET['search'])) {
+		$deleteUrl = clone($currentURL);
+		if (isset($deleteUrl->search)) { unset($deleteUrl->search); }
+
+		$displayName  = 'Search';
+		$displayValue = View::escape($_GET['search']);
+		echo $buttonHelper->buttonLink($deleteUrl, "$displayName:$displayValue", 'delete');
+	}
+
+	if (count($fq)) {
 		// There may only be one filterQuery
 		if (!is_array($fq)) { $fq = [$fq]; }
 
@@ -35,13 +46,23 @@ if (!empty($_GET['query'])
 			$value = $matches[2];
 
 			$deleteUrl = clone($currentURL);
-			if (isset($deleteUrl->$key)) { unset($deleteUrl->$key); }
+			switch ($key) {
+				case 'aspectRatio':
+					if (isset($deleteUrl->aspectRatio_width )) { unset($deleteUrl->aspectRatio_width ); }
+					if (isset($deleteUrl->aspectRatio_height)) { unset($deleteUrl->aspectRatio_height); }
 
-			$displayName  = Search::$searchableFields[$key];
-			$displayValue = Search::getDisplayValue($key, $value);
+					$displayName  = 'Aspect Ratio';
+					$displayValue = View::escape("$_GET[aspectRatio_width]x$_GET[aspectRatio_height]");
+				break;
 
-			$h = $this->template->getHelper('buttonLink');
-			echo $h->buttonLink($deleteUrl, "$displayName: $displayValue", 'delete');
+				default:
+					if (isset($deleteUrl->$key)) { unset($deleteUrl->$key); }
+
+					$displayName  = Search::$facetFields[$key];
+					$displayValue = Search::getDisplayValue($key, $value);
+			}
+
+			echo $buttonHelper->buttonLink($deleteUrl, "$displayName: $displayValue", 'delete');
 		}
 	}
 }

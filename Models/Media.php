@@ -27,6 +27,7 @@ class Media extends ActiveRecord
 	protected $department;
 
 	private $tags = [];
+	private $tagsHaveChanged = false;
 
 	/**
 	 * Whitelist of accepted file types
@@ -146,7 +147,10 @@ class Media extends ActiveRecord
 	public function save()
 	{
 		parent::save();
-		$this->saveTags();
+
+		if ($this->tagsHaveChanged) {
+			$this->saveTags();
+		}
 
 		$search = new Search();
 		$search->add($this);
@@ -156,12 +160,12 @@ class Media extends ActiveRecord
 	private function saveTags()
 	{
 		if ($this->getId()) {
+			$tags = $this->getTags();
+
 			$zend_db = Database::getConnection();
-
 			$zend_db->query('delete from media_tags where media_id=?', [$this->getId()]);
-
 			$query = $zend_db->createStatement('insert media_tags set media_id=?,tag_id=?');
-			foreach($this->getTags() as $tag) {
+			foreach($tags as $tag) {
 				$query->execute([$this->getId(), $tag->getId()]);
 			}
 		}
@@ -207,6 +211,8 @@ class Media extends ActiveRecord
 	public function getMd5()         { return parent::get('md5');         }
 	public function getTitle()       { return parent::get('title');       }
 	public function getDescription() { return parent::get('description'); }
+	public function getWidth()       { return parent::get('width');       }
+	public function getHeight()      { return parent::get('height');      }
 	public function getPerson_id()     { return parent::get('person_id');   }
 	public function getDepartment_id() { return parent::get('department_id'); }
 	public function getPerson()        { return parent::getForeignKeyObject(__namespace__.'\Person', 'person_id'); }
@@ -216,12 +222,13 @@ class Media extends ActiveRecord
 	public function setMd5        ($s) { parent::set('md5',         $s); }
 	public function setTitle      ($s) { parent::set('title',       $s); }
 	public function setDescription($s) { parent::set('description', $s); }
+	public function setWidth      ($i) { parent::set('width' , (int)$i); }
+	public function setHeight     ($i) { parent::set('height', (int)$i); }
 	public function setPerson_id    ($i) { parent::setForeignKeyField (__namespace__.'\Person', 'person_id', $i); }
 	public function setDepartment_id($i) { parent::setForeignKeyField (__namespace__.'\Department', 'department_id', $i); }
 	public function setPerson       ($o) { parent::setForeignKeyObject(__namespace__.'\Person', 'person_id', $o);  }
 	public function setDepartment   ($o) { parent::setForeignKeyObject(__namespace__.'\Department', 'department_id', $o); }
 	public function setUploaded   ($d) { parent::setDateData('uploaded', $d); }
-
 
 	public function getType() { return $this->getMedia_type(); }
 	public function getModified($f=null, DateTimeZone $tz=null) { return $this->getUploaded($f, $tz); }
@@ -300,6 +307,9 @@ class Media extends ActiveRecord
 		if (!is_file($newFile)) {
 			throw new \Exception('media/badServerPermissions');
 		}
+
+		$this->setWidth ($this->getImageWidth ());
+		$this->setHeight($this->getImageHeight());
 
 		$this->deleteDerivatives();
 	}
@@ -459,6 +469,8 @@ class Media extends ActiveRecord
 	 */
 	public function setTags($string)
 	{
+		$this->tagsHaveChanged = true;
+
 		foreach(Tag::tokenize($string) as $name) {
 			try {
 				$tag = new Tag($name);
@@ -532,12 +544,22 @@ class Media extends ActiveRecord
 	}
 
 	/**
+	 * @return float
+	 */
+	public function getAspectRatio()
+	{
+        if ($this->getWidth() && $this->getHeight()) {
+            return $this->getWidth()/$this->getHeight();
+        }
+	}
+
+	/**
 	 * Returns the width of the requested version of an image
 	 *
 	 * @param string $size The version of the image (see self::$sizes)
 	 * @return int
 	 */
-	public function getWidth($size=null)
+	public function getImageWidth($size=null)
 	{
 		return exec(IMAGEMAGICK."/identify -format '%w' ".$this->getFullPath($size));
 	}
@@ -548,7 +570,7 @@ class Media extends ActiveRecord
 	 * @param string $size The version of the image (see self::$sizes)
 	 * @return int
 	 */
-	public function getHeight($size=null)
+	public function getImageHeight($size=null)
 	{
 		return exec(IMAGEMAGICK."/identify -format '%h' ".$this->getFullPath($size));
 	}

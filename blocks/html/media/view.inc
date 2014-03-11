@@ -64,6 +64,9 @@ use Blossom\Classes\View;
 	<tr><th>Size</th>
 		<td><?php echo "{$this->media->getWidth()}x{$this->media->getHeight()}"; ?></td>
 	</tr>
+	<tr><th>Aspect Ratio</th>
+        <td><?php echo $this->media->getAspectRatio(); ?></td>
+    </tr>
 	<tr><th>Format</th>
 		<td><?php echo $this->media->getMime_type(); ?></td>
 	</tr>

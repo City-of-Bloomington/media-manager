@@ -23,7 +23,7 @@ class Search
 	/**
 	 * Lookup table matching field codes to display names
 	 */
-	public static $searchableFields = [
+	public static $facetFields = [
 		'department_id' => 'Department',
 		'mime_type'     => 'Mime Type',
 		'tag_id'        => 'Tag'
@@ -64,7 +64,13 @@ class Search
 			$document->addField('md5',              $entry->getMd5());
 			$document->addField('person_id',        $entry->getPerson_id());
 			$document->addField('department_id',    $entry->getDepartment_id());
-			$document->addField('uploaded', $entry->getUploaded(self::DATE_FORMAT), \DateTimeZone::UTC);
+            $document->addField('uploaded', $entry->getUploaded(self::DATE_FORMAT), \DateTimeZone::UTC);
+
+            if ($entry->getWidth() && $entry->getHeight()) {
+				$document->addField('width',       $entry->getWidth());
+				$document->addField('height',      $entry->getHeight());
+				$document->addField('aspectRatio', $entry->getAspectRatio());
+			}
 
 			foreach ($entry->getTags() as $tag) {
 				$document->addField('tag_id', $tag->getId());
@@ -135,6 +141,11 @@ class Search
 		if (!empty($get['department_id'])) { $fq[] = "department_id:$get[department_id]"; }
 		if (!empty($get['mime_type']    )) { $fq[] = "mime_type:$get[mime_type]";         }
 		if (!empty($get['tag_id']       )) { $fq[] = "tag_id:$get[tag_id]";               }
+
+		if (!empty($get['aspectRatio_width']) && !empty($get['aspectRatio_height'])) {
+			$ratio = (int)$get['aspectRatio_width']/(int)$get['aspectRatio_height'];
+			if ($ratio) { $fq[] = "aspectRatio:$ratio"; }
+		}
 		if (count($fq)) { $additionalParameters['fq'] = $fq; }
 
 		$solrResponse = $this->solrClient->search($query, $startingPage, $rows, $additionalParameters);
@@ -178,7 +189,7 @@ class Search
 	/**
 	 * Returns the display value of an object corresponding to a search field
 	 *
-	 * For each of the self::$searchableFields we need a way to look up the
+	 * For each of the self::$facetFields we need a way to look up the
 	 * object corresponding to the value in the search index.
 	 * Example: self::getDisplayName('department_id', 32);
 	 *
@@ -191,7 +202,7 @@ class Search
 	 */
 	public static function getDisplayValue($fieldname, $value)
 	{
-		if (isset(self::$searchableFields[$fieldname])) {
+		if (isset(self::$facetFields[$fieldname])) {
 			if (false !== strpos($fieldname, '_id')) {
 				try {
 					$class = __namespace__.'\\'.ucfirst(substr($fieldname, 0, -3));
