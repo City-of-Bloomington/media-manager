@@ -10,6 +10,9 @@ use Application\Models\Search;
 use Blossom\Classes\Url;
 use Blossom\Classes\View;
 
+$this->template->addToAsset('scripts', YUI.'/yui/yui-min.js');
+$this->template->addToAsset('scripts', BASE_URI.'/js/collapsible.js');
+
 $search = !empty($_GET['search'])             ? View::escape($_GET['search'])             : '';
 $width  = !empty($_GET['aspectRatio_width' ]) ? View::escape($_GET['aspectRatio_width' ]) : '';
 $height = !empty($_GET['aspectRatio_height']) ? View::escape($_GET['aspectRatio_height']) : '';
@@ -42,19 +45,18 @@ $height = !empty($_GET['aspectRatio_height']) ? View::escape($_GET['aspectRatio_
 					}
 					if ($list) {
 						echo "
-						<div>
-							<h3>$name</h3>
-							<ul>$list</ul>
+						<div class=\"collapsible\">
+							<h3 class=\"hd\">$name</h3>
+							<ul class=\"bd\">$list</ul>
 						</div>
 						";
 					}
 				}
 
 			?>
-		</fieldset>
-		<fieldset>
-			<div><h3>Aspect Ratio</h3>
-				<table>
+			<div class="collapsible">
+				<h3 class="hd">Aspect Ratio</h3>
+				<table class="bd">
 					<tr><th>Width</th>
 						<td><input name="aspectRatio_width" value="<?php echo $width; ?>" size="4" /></td>
 					</tr>

@@ -82,11 +82,17 @@ header nav a { font-weight:bold; color:black; }
 }
 #panel-one ul { margin:.25em; padding:0; }
 
-#content-panel { padding:4px; }
+.collapsible .hd { cursor:pointer; padding:5px 10px 5px 3px; margin:10px 0; border-bottom:1px solid #ddd; }
+.collapsed   .hd { background:#ddd url('images/plus.png')  95% center no-repeat; }
+.expanded    .hd { background:#ddd url('images/minus.png') 95% center no-repeat; }
+.collapsed   .bd { display:none; }
+.expanded    .bd { display:block; }
 
 /**
  * Main Content
  */
+#content-panel { padding:4px; }
+
 #errorMessages { background-color:#fcc; padding:4px; border-radius:10px; }
 #errorMessages h2 { }
 
