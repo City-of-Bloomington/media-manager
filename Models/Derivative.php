@@ -70,13 +70,39 @@ class Derivative extends ActiveRecord
 	public function getId()   { return parent::get('id');   }
 	public function getName() { return parent::get('name'); }
 	public function getSize() { return parent::get('size'); }
+	public function getAspectRatio_width () { return parent::get('aspectRatio_width' ); }
+	public function getAspectRatio_height() { return parent::get('aspectRatio_height'); }
 
 	public function setName($s) { parent::set('name', $s); }
 	public function setSize($s) { parent::set('size', $s); }
+	public function setAspectRatio_width ($i) { parent::set('aspectRatio_width' , (int)$i); }
+	public function setAspectRatio_height($i) { parent::set('aspectRatio_height', (int)$i); }
 
 	public function handleUpdate($post)
 	{
 		$this->setName($post['name']);
 		$this->setSize($post['size']);
+
+		if (!empty($post['aspectRatio_width']) && !empty($post['aspectRatio_height'])) {
+			$this->setAspectRatio_width ($post['aspectRatio_width' ]);
+			$this->setAspectRatio_height($post['aspectRatio_height']);
+		}
+		else {
+			$this->setAspectRatio_width ();
+			$this->setAspectRatio_height();
+		}
+	}
+
+	//----------------------------------------------------------------
+	// Custom functions
+	//----------------------------------------------------------------
+	/**
+	 * @return float
+	 */
+	public function getAspectRatio()
+	{
+		if ($this->getAspectRatio_width() && $this->getAspectRatio_height()) {
+			return $this->getAspectRatio_width()/$this->getAspectRatio_height();
+		}
 	}
 }

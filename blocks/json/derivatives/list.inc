@@ -8,11 +8,20 @@
 use Application\Models\Media;
 
 $out = [
-	'SIZE_THUMBNAIL'=> Media::SIZE_THUMBNAIL,
-	'SIZE_MEDIUM'   => Media::SIZE_MEDIUM
+	'SIZE_THUMBNAIL'=> ['size' => Media::SIZE_THUMBNAIL],
+	'SIZE_MEDIUM'   => ['size' => Media::SIZE_MEDIUM   ]
 ];
 
 foreach ($this->derivatives as $d) {
-	$out[$d->getName()] = $d->getSize();
+	$name = $d->getName();
+
+	$out[$name]['size'] = $d->getSize();
+
+	if ($d->getAspectRatio_width() && $d->getAspectRatio_height()) {
+		$out[$name]['aspectRatio'] = [
+			'width' => $d->getAspectRatio_width (),
+			'height'=> $d->getAspectRatio_height()
+		];
+	}
 }
-echo json_encode($out);
+echo json_encode($out, JSON_NUMERIC_CHECK);

@@ -52,5 +52,7 @@ create table media_tags (
 create table derivatives (
 	id   int unsigned not null primary key auto_increment,
 	name varchar(128) not null,
-	size int unsigned not null
+	size int unsigned not null,
+	aspectRatio_width  int unsigned,
+	aspectRatio_height int unsigned
 );

@@ -71,13 +71,28 @@ function mediamanager_field_widget_form(&$form, &$form_state, &$field, &$instanc
 {
 	if ($instance['widget']['type'] == 'mediamanager_mediaChooser') {
 		$url = variable_get('mediamanager_url');
+		// If the field is set to display at a certain size,
+		// look up the aspect ratio for that size, and add the parameters
+		// to the mediamanager url.
+		if (!empty($instance['display']['default']['settings']['size'])) {
+			$s =   $instance['display']['default']['settings']['size'];
+
+			$sizes = _mediamanager_sizes();
+			if (isset( $sizes->$s->aspectRatio)) {
+				$ar = &$sizes->$s->aspectRatio;
+
+				if (!empty($ar->width) && !empty($ar->height)) {
+					$url.= '?aspectRatio_width=' .$ar->width;
+					$url.= ';aspectRatio_height='.$ar->height;
+				}
+			}
+		}
 
 		$element['media_id'] = [
             '#type'          => 'textfield',
             '#title'         => isset($instance['label']) ? $instance['label'] : 'Media ID',
             '#default_value' => isset($items[$delta])     ? $items[$delta]     : null,
             '#field_suffix'  => l('Media Manager', $url)
-            //'#element_validate' => ['mediamanager_field_validate']
 		];
 	}
 	return $element;
@@ -102,9 +117,83 @@ function mediamanager_field_validate($entity_type, $entity, $field, $instance, $
 			if (!$id) {
 				$errors[$field['field_name']][$lang][$delta][] = [
 					'error'   => 'unknownMedia',
-					'message' => 'The media id you provided is not valid'
+					'message' => "The $instance[label] you provided is not a valid id"
 				];
 			}
+			// Make sure the media the user chose meets the requirements
+			// for the display settings on this field
+			else {
+				$derivative  = _mediamanager_display_size($instance);
+				if ($derivative) {
+					$media   = _mediamanager_media_info($id);
+					// Make sure the image is big enough
+					if ($media->width < $derivative->size && $media->height < $derivative->size) {
+						$errors[$field['field_name']][$lang][$delta][] = [
+							'error'   => 'mediaTooSmall',
+							'message' => "The $instance[label] you provided is too small"
+						];
+					}
+					// Check the aspect ratio
+					if (isset( $derivative->aspectRatio)) {
+						$ar = &$derivative->aspectRatio;
+						if (!empty($ar->width) && !empty($ar->height)
+							&& (($media->width / $media->height) != ($ar->width / $ar->height))) {
+							$errors[$field['field_name']][$lang][$delta][] = [
+								'error'   => 'wrongAspectRatio',
+								'message' => "The $instance[label] you provided has the wrong aspect ratio"
+							];
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+/**
+ * Returns the media manger derivative matching Drupal's default display size
+ *
+ * Each field in Drupal can have a Display setting size.
+ * The size setting for the Default view mode is used to request
+ * a named derivative from media manager.
+ * If media manager has a named derivative matching the size name,
+ * the derivative information is returned.
+ *
+ * @internal
+ * @return stdClass
+ */
+function _mediamanager_display_size(&$instance)
+{
+	if (!empty($instance['display']['default']['settings']['size'])) {
+		$s =   $instance['display']['default']['settings']['size'];
+
+		$sizes = _mediamanager_sizes();
+		if (isset($sizes->$s)) { return $sizes->$s;}
+	}
+}
+
+/**
+ * Returns aspectRatio restrictions if they exist
+ *
+ * A field instance's display settings might call for a given size
+ * of derivative from media manager.  The particular derivative
+ * might have a specific aspectRatio that's required.
+ * If this is the case, the aspectRatio requirements are returned.
+ *
+ * If no restrictions apply, this function returns null
+ *
+ * @internal
+ * @param array $instance The Drupal instance array
+ * @return stdClass
+ */
+function _mediamanager_aspectRatio_restrictions(&$instance)
+{
+	if (!empty($instance['display']['default']['settings']['size'])) {
+		$s =   $instance['display']['default']['settings']['size'];
+
+		$sizes = _mediamanager_sizes();
+		if (isset( $sizes->$s->aspectRatio)) {
+			return $sizes->$s->aspectRatio;
 		}
 	}
 }
@@ -205,7 +294,7 @@ function theme_mediamanager_media($var)
 
 	if ($var['size']) {
 		$json = _mediamanager_sizes();
-		$size = $json->$var['size'];
+		$size = $json->$var['size']->size;
 
 		$f = explode('.', $var['media']->internalFilename);
 		$var['path'] = "$url/m/$d/$size/$f[0].png";
@@ -217,23 +306,47 @@ function theme_mediamanager_media($var)
 	return theme('image', $var);
 }
 
+/**
+ * Queries media manager for all the information about derivatives
+ *
+ * The response is cached in memory, so subsequent calls
+ * to this function do not send out another HTTP request.
+ *
+ * @return stdClass JSON Response from media manager
+ */
 function _mediamanager_sizes()
 {
-	$url = variable_get('mediamanager_url').'/derivatives?format=json';
-	$response = drupal_http_request($url);
-	return json_decode($response->data);
+	static $response = null;
+
+	if (!$response) {
+		$url = variable_get('mediamanager_url').'/derivatives?format=json';
+		$response = drupal_http_request($url);
+	}
+	if (isset($response->data)) {
+		return json_decode($response->data);
+	}
 }
 
 /**
+ * Queries media manager for a single item's info
+ *
+ * The response is cached in memory, so subsequent calls
+ * to this function do not send out another HTTP request.
+ *
  * @param int|hex $id
- * @return StdObject JSON response from media manager
+ * @return stdClass JSON response from media manager
  */
 function _mediamanager_media_info($id)
 {
-	$url = variable_get('mediamanager_url')."/media/view?format=json&media_id=$id";
+	static $response = [];
 
-	$response = drupal_http_request($url);
-	return json_decode($response->data);
+	if (empty($response[$id])) {
+		$url = variable_get('mediamanager_url')."/media/view?format=json&media_id=$id";
+		$response[$id] = drupal_http_request($url);
+	}
+	if (isset($response[$id]->data)) {
+		return json_decode($response[$id]->data);
+	}
 }
 
 /**

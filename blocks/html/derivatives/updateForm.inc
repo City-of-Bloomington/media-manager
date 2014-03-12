@@ -23,6 +23,20 @@ $title = $this->derivative->getId() ? $this->_('edit_derivative') : $this->_('ad
 				<td><input name="size" id="size" value="<?php echo $this->derivative->getSize(); ?>" /></td>
 			</tr>
 		</table>
+	</fieldset>
+	<fieldset><legend>Aspect Ratio</legend>
+		<table>
+			<tr><td><label for="aspectRatio_width">Width</label></td>
+				<td><input name="aspectRatio_width" id="aspectRatio_width"
+						value="<?php echo $this->derivative->getAspectRatio_width(); ?>" /></td>
+			</tr>
+			<tr><td><label for="aspectRatio_height">Height</label></td>
+				<td><input name="aspectRatio_height" id="aspectRatio_height"
+						value="<?php echo $this->derivative->getAspectRatio_height(); ?>" /></td>
+			</tr>
+		</table>
+	</fieldset>
+	<fieldset>
 		<?php
 			$h = $this->template->getHelper('saveAndCancelButtons');
 			echo $h->saveAndCancelButtons(BASE_URI.'/derivatives');

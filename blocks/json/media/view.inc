@@ -16,11 +16,13 @@ $m = [
 	'title'           => $this->media->getTitle(),
 	'description'     => $this->media->getDescription(),
 	'md5'             => $this->media->getMd5(),
-	'uploaded'        => $this->media->getUploaded('c')
+	'uploaded'        => $this->media->getUploaded('c'),
+	'width'           => $this->media->getWidth(),
+	'height'          => $this->media->getHeight()
 ];
 $table = new DerivativesTable();
 $sizes = $table->find();
 foreach ($sizes as $s) {
 	$m['derivatives'][] = [ $s->getName() => $s->getSize() ];
 }
-echo json_encode($m);
+echo json_encode($m, JSON_NUMERIC_CHECK);
