@@ -92,7 +92,8 @@ function mediamanager_field_widget_form(&$form, &$form_state, &$field, &$instanc
             '#type'          => 'textfield',
             '#title'         => isset($instance['label']) ? $instance['label'] : 'Media ID',
             '#default_value' => isset($items[$delta])     ? $items[$delta]     : null,
-            '#field_suffix'  => l('Media Manager', $url, ['attributes'=>['target'=>'_blank']])
+            '#field_suffix'  => l('Media Manager', $url, ['attributes'=>['target'=>'_blank']]),
+            '#description'   => !empty($instance['description']) ? $instance['description'] : null
 		];
 	}
 	return $element;
