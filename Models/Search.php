@@ -9,9 +9,9 @@
  */
 namespace Application\Models;
 
-use \Apache_Solr_Service;
 use \Apache_Solr_Document;
 use \Apache_Solr_Response;
+use \Apache_Solr_Service;
 
 class Search
 {

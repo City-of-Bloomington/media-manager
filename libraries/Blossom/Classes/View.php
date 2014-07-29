@@ -21,8 +21,14 @@ abstract class View
 	 * http://framework.zend.com/manual/2.2/en/modules/zend.i18n.translating.html
 	 * @see http://framework.zend.com/manual/2.2/en/modules/zend.i18n.translating.html
 	 */
-	public function __construct()
+	public function __construct(array $vars=null)
 	{
+		if (count($vars)) {
+			foreach ($vars as $name=>$value) {
+				$this->vars[$name] = $value;
+			}
+		}
+
 		if (!self::$translator) {
 			self::$translator = new Translator();
 			self::$translator->addTranslationFilePattern(
@@ -83,7 +89,7 @@ abstract class View
 			}
 		}
 		else {
-			$input = htmlspecialchars(trim($input),$quotes);
+			$input = htmlspecialchars(trim($input), $quotes, 'UTF-8');
 		}
 
 		return $input;

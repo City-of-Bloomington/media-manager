@@ -2,3 +2,5 @@ These tests are for verifying that an installation is up and working.
 
 All of these tests are safe to do in production, in fact, that's the whole point.
 We want to verify that production is installed and configured correctly.
+
+Integration tests must hit the database and other services, but they should be read-only.

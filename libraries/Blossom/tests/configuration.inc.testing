@@ -4,16 +4,21 @@
  * No database or external service configuration is included
  */
 /**
- * Displayed in the banner
- */
-define('APPLICATION_NAME','application');
-
-/**
  * Where on the filesystem this application is installed
  */
 define('APPLICATION_HOME','/srv/sites/application');
 define('BLOSSOM', APPLICATION_HOME.'/libraries/Blossom');
 define('ZEND',    APPLICATION_HOME.'/libraries/zf2/library/Zend');
+
+/**
+ * Multi-Site support
+ *
+ * To allow multiple sites to use this same install base,
+ * define the SITE_HOME variable in the Apache config for each
+ * site you want to host.
+ */
+define('SITE_HOME', __DIR__);
+include SITE_HOME.'/site_config.inc';
 
 /**
  * Set how we want to handle errors

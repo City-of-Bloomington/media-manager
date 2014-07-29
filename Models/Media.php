@@ -182,7 +182,7 @@ class Media extends ActiveRecord
 
 			$this->deleteDerivatives();
 
-			unlink(DATA_HOME."/data/media/{$this->getDirectory()}/{$this->getInternalFilename()}");
+			unlink(SITE_HOME."/media/{$this->getDirectory()}/{$this->getInternalFilename()}");
 			parent::delete();
 
 			$search = new Search();
@@ -197,7 +197,7 @@ class Media extends ActiveRecord
 	public function deleteDerivatives()
 	{
 		$uniqid = preg_replace('/[^.]+$/', '', $this->getInternalFilename());
-		$pattern = DATA_HOME."/data/media/{$this->getDirectory()}/*/$uniqid*";
+		$pattern = SITE_HOME."/media/{$this->getDirectory()}/*/$uniqid*";
 
 		foreach(glob($pattern) as $file) { unlink($file); }
 	}
@@ -353,7 +353,7 @@ class Media extends ActiveRecord
 	 *
 	 * @return string
 	 */
-	private function getFullPath($size=null)
+	public function getFullPath($size=null)
 	{
 		$size = (int)$size;
 
@@ -361,11 +361,11 @@ class Media extends ActiveRecord
 			preg_match(self::REGEX_FILENAME_EXT, $this->getInternalFilename(), $matches);
 			$filename = $matches[1];
 
-			return DATA_HOME."/data/media/{$this->getDirectory()}/$size/$filename.png";
+			return SITE_HOME."/media/{$this->getDirectory()}/$size/$filename.png";
 		}
 		else {
 			// Return the size of the original
-			return DATA_HOME."/data/media/{$this->getDirectory()}/{$this->getInternalFilename()}";
+			return SITE_HOME."/media/{$this->getDirectory()}/{$this->getInternalFilename()}";
 		}
 	}
 
@@ -411,7 +411,7 @@ class Media extends ActiveRecord
 	 */
 	public function getFilesize()
 	{
-		return filesize(DATA_HOME."/data/media/{$this->getDirectory()}/{$this->getInternalFilename()}");
+		return filesize(SITE_HOME."/media/{$this->getDirectory()}/{$this->getInternalFilename()}");
 	}
 
 	/**
@@ -493,7 +493,7 @@ class Media extends ActiveRecord
 	public function output($size)
 	{
 		// If they don't specify size, just output the opriginal file
-		$directory = DATA_HOME."/data/media/{$this->getDirectory()}";
+		$directory = SITE_HOME."/media/{$this->getDirectory()}";
 		$original = $this->getInternalFilename();
 		if (!$size) {
 			readfile("$directory/$original");

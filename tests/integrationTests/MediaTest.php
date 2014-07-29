@@ -7,13 +7,11 @@
 require_once __DIR__.'/../../configuration.inc';
 
 use Application\Models\Media;
+use Blossom\Classes\Database;
 
 class MediaTest extends PHPUnit_Framework_TestCase
 {
 	private $origFile = '';
-	private $testFile = '';
-	private $FILE = []; // stand-in for $_FILE
-	private $testSize = 60;
 	private $origFileWidth;
 	private $origFileHeight;
 
@@ -22,22 +20,13 @@ class MediaTest extends PHPUnit_Framework_TestCase
 	public function __construct()
 	{
 		$this->origFile = __DIR__.'/Dan.png';
-		$this->testFile = __DIR__.'/test.png';
-		$this->FILE = array('tmp_name'=>$this->testFile,'name'=>'Dan.png');
 
 		$this->origFileWidth  = 1280;
 		$this->origFileHeight = 1024;
 	}
 
-	/**
-	 * Creates a fresh test image to use as a file upload
-	 *
-	 * Required, because the file upload is moved, not copied.
-	 * In other words, the file gets deleted each time
-	 */
 	public function setUp()
 	{
-		copy($this->origFile, $this->testFile);
 		$this->filesToCleanUp = [];
 	}
 
@@ -59,88 +48,33 @@ class MediaTest extends PHPUnit_Framework_TestCase
 		$this->assertTrue(file_exists($thumbnail), 'Thumbnail not generated');
 	}
 
-	public function testSetFile()
-	{
-		$media = new Media();
-		$media->setFile($this->FILE);
-		$this->assertEquals('Dan.png', $media->getFilename());
-
-		$newFile = DATA_HOME."/data/media/{$media->getDirectory()}/{$media->getInternalFilename()}";
-		$this->filesToCleanUp[] = $newFile;
-		$this->assertTrue(file_exists($newFile));
-	}
-
-	public function testInternalFilename()
-	{
-		$media = new Media();
-		$media->setFile($this->FILE);
-
-		$this->assertNotEmpty($media->getInternalFilename());
-
-		$newFile = DATA_HOME."/data/media/{$media->getDirectory()}/{$media->getInternalFilename()}";
-		$this->filesToCleanUp[] = $newFile;
-	}
-
-	public function testGetSizes()
-	{
-		$media = new Media();
-		$media->setFile($this->FILE);
-
-		$this->assertEquals($this->origFileWidth,  $media->getWidth());
-		$this->assertEquals($this->origFileHeight, $media->getHeight());
-
-		$newFile = DATA_HOME."/data/media/{$media->getDirectory()}/{$media->getInternalFilename()}";
-		$this->filesToCleanUp[] = $newFile;
-	}
-
-	public function testGenerateAndClearThumbnail()
-	{
-		$media = new Media();
-		$media->setFile($this->FILE);
-
-		ob_start();
-		$media->output($this->testSize);
-		ob_end_clean();
-
-		$newFile   = DATA_HOME."/data/media/{$media->getDirectory()}/{$media->getInternalFilename()}";
-		$thumbnail = DATA_HOME."/data/media/{$media->getDirectory()}/{$this->testSize}/{$media->getInternalFilename()}";
-		$this->assertTrue(file_exists($thumbnail));
-
-		$this->filesToCleanUp[] = $newFile;
-		$this->filesToCleanUp[] = $thumbnail;
-
-		$info = getimagesize($thumbnail);
-		$this->assertTrue(($info[0]==$this->testSize || $info[1]==$this->testSize));
-
-		$media->deleteDerivatives();
-		$this->assertFalse(file_exists($thumbnail));
-	}
-
 	/**
 	 * Make sure the URL for the image is web accessible
 	 */
 	public function testGetURL()
 	{
-		$media = new Media();
-		$media->setFile($this->FILE);
-
-		$newFile   = DATA_HOME."/data/media/{$media->getDirectory()}/{$media->getInternalFilename()}";
-		$this->filesToCleanUp[] = $newFile;
-
 		$temp = __DIR__."/temp.png";
-		$this->filesToCleanUp[] = $temp;
 
-		$request = curl_init($media->getUrl());
-		curl_setopt($request, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($request, CURLOPT_BINARYTRANSFER, true);
-		file_put_contents($temp, curl_exec($request));
-		$this->assertTrue(file_exists($temp), 'Media is not available over HTTP');
+		$zend_db = Database::getConnection();
+		$result = $zend_db->query("select * from media where media_type='image' limit 1")->execute();
+		if (count($result)) {
+			$row = $result->current();
+			$media = new Media($row);
 
-		$origInfo = getimagesize($this->origFile);
-		$download = getimagesize($temp);
+			$request = curl_init($media->getURL());
+			curl_setopt($request, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($request, CURLOPT_BINARYTRANSFER, true);
+			file_put_contents($temp, curl_exec($request));
+			$this->assertTrue(file_exists($temp), 'Media is not available over HTTP');
 
-		$this->assertEquals($origInfo[0], $download[0], 'Downloaded image size does not match original');
-		$this->assertEquals($origInfo[1], $download[1], 'Downloaded image size does not match original');
+			$this->assertEquals($media->getFilesize(), filesize($temp), 'Filesizes do not match');
+
+			$download = getimagesize($temp);
+			$this->assertEquals($media->getWidth() , $download[0], 'Downloaded image size does not match original');
+			$this->assertEquals($media->getHeight(), $download[1], 'Downloaded image size does not match original');
+		}
+
+		#if (file_exists($temp)) { unlink($temp); }
 	}
 
 	/**
@@ -151,35 +85,39 @@ class MediaTest extends PHPUnit_Framework_TestCase
 	 */
 	public function testAutogenerateThumbnailsByURL()
 	{
-		$media = new Media();
-		$media->setFile($this->FILE);
-		$media->setPerson_id(1);
-		$media->save();
-
-		$newFile   = DATA_HOME."/data/media/{$media->getDirectory()}/{$media->getInternalFilename()}";
-		$thumbnail = DATA_HOME."/data/media/{$media->getDirectory()}/{$this->testSize}/{$media->getInternalFilename()}";
 		$temp = __DIR__."/temp.png";
-		$this->filesToCleanUp[] = $newFile;
-		$this->filesToCleanUp[] = $thumbnail;
-		$this->filesToCleanUp[] = $temp;
 
-		#echo "Downloading {$media->getUrl($this->testSize)}\n";
+		$zend_db = Database::getConnection();
+		// We have to choose a valid size, otherwise it will really 404
+		$result = $zend_db->query('select min(size) as size from derivatives')->execute();
+		if (count($result)) {
+			$row  = $result->current();
+			$size = $row['size'];
+		}
 
-		$request = curl_init($media->getUrl($this->testSize));
-		curl_setopt($request, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($request, CURLOPT_BINARYTRANSFER, true);
-		file_put_contents($temp, curl_exec($request));
-		$this->assertTrue(file_exists($thumbnail), 'Thumbnail file does not exist');
-		$this->assertTrue(file_exists($temp), 'Thumbnail file not downloaded');
+		$result = $zend_db->query("select * from media where media_type='image' limit 1")->execute();
+		if (isset($size) && count($result)) {
+			$row = $result->current();
+			$media = new Media($row);
 
-		$info = getimagesize($temp);
-		#echo "Generated thumbnail\n";
-		#print_r($info);
-		$this->assertTrue(
-			($info[0]==$this->testSize || $info[1]==$this->testSize),
-			'Generated image is not the correct size'
-		);
+			$media->deleteDerivatives();
+			$this->assertFalse(file_exists($media->getFullPath($size)));
 
-		$media->delete();
+			$url = $media->getURL($size);
+			$request = curl_init($media->getURL($size));
+			curl_setopt($request, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($request, CURLOPT_BINARYTRANSFER, true);
+			file_put_contents($temp, curl_exec($request));
+			$this->assertTrue(file_exists($temp), 'Thumbnail file not downloaded');
+
+			$info = getimagesize($temp);
+
+			$this->assertTrue(
+				($info[0]==$size || $info[1]==$size),
+				'Generated image is not the correct size'
+			);
+
+			#if (file_exists($temp)) { unlink($temp); }
+		}
 	}
 }
