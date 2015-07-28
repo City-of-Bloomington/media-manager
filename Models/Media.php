@@ -58,23 +58,6 @@ class Media extends ActiveRecord
 	];
 
 	/**
-	 * Checks if the provided size is a known derivative size
-	 *
-	 * @param int $size
-	 * @return boolean
-	 */
-	public static function isValidSize($size)
-	{
-		if ($size == self::SIZE_THUMBNAIL || $size == self::SIZE_MEDIUM) {
-			return true;
-		}
-
-		$table = new DerivativesTable();
-		$sizes = $table->find(['size'=>$size]);
-		return count($sizes) ? true : false;
-	}
-
-	/**
 	 * Populates the object with data
 	 *
 	 * Passing in an associative array of data will populate this object without
@@ -211,8 +194,6 @@ class Media extends ActiveRecord
 	public function getMd5()         { return parent::get('md5');         }
 	public function getTitle()       { return parent::get('title');       }
 	public function getDescription() { return parent::get('description'); }
-	public function getWidth()       { return parent::get('width');       }
-	public function getHeight()      { return parent::get('height');      }
 	public function getPerson_id()     { return parent::get('person_id');   }
 	public function getDepartment_id() { return parent::get('department_id'); }
 	public function getPerson()        { return parent::getForeignKeyObject(__namespace__.'\Person', 'person_id'); }
@@ -222,8 +203,6 @@ class Media extends ActiveRecord
 	public function setMd5        ($s) { parent::set('md5',         $s); }
 	public function setTitle      ($s) { parent::set('title',       $s); }
 	public function setDescription($s) { parent::set('description', $s); }
-	public function setWidth      ($i) { parent::set('width' , (int)$i); }
-	public function setHeight     ($i) { parent::set('height', (int)$i); }
 	public function setPerson_id    ($i) { parent::setForeignKeyField (__namespace__.'\Person', 'person_id', $i); }
 	public function setDepartment_id($i) { parent::setForeignKeyField (__namespace__.'\Department', 'department_id', $i); }
 	public function setPerson       ($o) { parent::setForeignKeyObject(__namespace__.'\Person', 'person_id', $o);  }
@@ -307,9 +286,6 @@ class Media extends ActiveRecord
 		if (!is_file($newFile)) {
 			throw new \Exception('media/badServerPermissions');
 		}
-
-		$this->setWidth ($this->getImageWidth ());
-		$this->setHeight($this->getImageHeight());
 
 		$this->deleteDerivatives();
 	}
@@ -488,90 +464,44 @@ class Media extends ActiveRecord
 	/**
 	 * Generates, caches, and outputs derivatives
 	 *
-	 * @param int $size Bounding box in pixels
+	 * @param string $derivative The identifier for a derivative
 	 */
-	public function output($size)
+	public function output($derivative)
 	{
 		// If they don't specify size, just output the opriginal file
 		$directory = SITE_HOME."/media/{$this->getDirectory()}";
 		$original = $this->getInternalFilename();
-		if (!$size) {
+		if (!$derivative) {
 			readfile("$directory/$original");
 		}
 		else {
-			$size = (int)$size;
-			$thumbnailDirectory = "$directory/$size";
-
-			preg_match(self::REGEX_FILENAME_EXT, $original, $matches);
-			$resizedFile = $matches[1].'.png';
-
-			if (!is_file("$thumbnailDirectory/$resizedFile")) {
-				self::saveDerivative("$directory/$original", $size);
-			}
-
-			readfile("$thumbnailDirectory/$resizedFile");
+            $o = $this->getTypeObject();
+            $o->outputDerivative($derivative);
 		}
 	}
 
 	/**
-	 * Use ImageMagick to create a thumbnail file for the given image
+	 * Instantiates an object of the type matching this media_type
 	 *
-	 * Input must be a full path.
-	 * The resized image file will be saved in $inputPath/$size/$inputFilename.$ext
-	 * The sizes array determines the output filetype (gif,jpg,png)
-	 * ie. /var/www/sites/photobase/uploads/username/something.jpg
-	 *
-	 * @param string $inputFile Full path to an image file
-	 * @param int $size The desired bounding box size
+	 * @return object
 	 */
-	public static function saveDerivative($inputFile, $size)
+	public function getTypeObject()
 	{
-		$size = (int)$size;
-		$directory = dirname($inputFile)."/$size";
+        static $o;
 
-		preg_match(self::REGEX_FILENAME_EXT, basename($inputFile), $matches);
-		$filename = $matches[1];
-
-		if (!is_dir($directory)) {
-			if (!mkdir($directory, 0777, true)) {
-				throw new \Exception('media/PermissionDenied');
-			}
-		}
-
-		$dimensions = $size.'x'.$size;
-		$newFile = "$directory/$filename.png";
-		exec(IMAGEMAGICK."/convert $inputFile -channel rgba -alpha set -resize '$dimensions>' $newFile");
-	}
-
-	/**
-	 * @return float
-	 */
-	public function getAspectRatio()
-	{
-        if ($this->getWidth() && $this->getHeight()) {
-            return $this->getWidth()/$this->getHeight();
+        if (!$o) {
+            $class = 'Application\\Models\\'.ucfirst($this->getMedia_type());
+            $o = new $class($this);
         }
+        return $o;
 	}
 
 	/**
-	 * Returns the width of the requested version of an image
+	 * Returns the size of the original media file, in pixels
 	 *
-	 * @param string $size The version of the image (see self::$sizes)
 	 * @return int
 	 */
-	public function getImageWidth($size=null)
-	{
-		return exec(IMAGEMAGICK."/identify -format '%w' ".$this->getFullPath($size));
-	}
-
-	/**
-	 * Returns the height of the requested version of an image
-	 *
-	 * @param string $size The version of the image (see self::$sizes)
-	 * @return int
-	 */
-	public function getImageHeight($size=null)
-	{
-		return exec(IMAGEMAGICK."/identify -format '%h' ".$this->getFullPath($size));
-	}
+	public function getWidth ()      { return $this->getTypeObject()->getWidth (); }
+	public function getHeight()      { return $this->getTypeObject()->getHeight(); }
+	public function getAspectRatio() { return $this->getTypeObject()->getAspectRatio(); }
 }

@@ -32,7 +32,7 @@ class UploadDirectory Implements \Countable, \IteratorAggregate
 	 */
 	public function getDirectory()
 	{
-		return DATA_HOME.'/data/uploads/'.$this->user->getUsername();
+		return SITE_HOME.'/uploads/'.$this->user->getUsername();
 	}
 
 	/**
@@ -96,6 +96,8 @@ class UploadDirectory Implements \Countable, \IteratorAggregate
 				$media->save();
 			}
 			catch (\Exception $e) {
+                print_r($e);
+                exit();
 				$errors[$filename] = $e;
 			}
 		}

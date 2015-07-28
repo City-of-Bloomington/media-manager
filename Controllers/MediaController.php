@@ -42,17 +42,20 @@ class MediaController extends Controller
 	 * @param REQUEST media_id
 	 * @param REQUEST size
 	 */
-	public function resize()
+	public function derivative()
 	{
 		$this->template->setFilename('media');
 		try {
 			$media = new Media($_REQUEST['media_id']);
 
-			$size = !empty($_REQUEST['size']) ? (int)$_REQUEST['size'] : null;
-			if (Media::isValidSize($size)) {
+			$derivative = !empty($_REQUEST['derivative']) ? $_REQUEST['derivative'] : null;
+
+			$type = $media->getMedia_type();
+			$class = 'Application\\Models\\'.ucfirst($type);
+			if ($class::isValidSize($derivative)) {
 				$this->template->blocks[] = new Block(
-					'media/image.inc',
-					array('media'=>$media, 'size'=>$size)
+					"media/download.inc",
+					['media'=>$media, 'derivative'=>$derivative]
 				);
 			}
 			else {

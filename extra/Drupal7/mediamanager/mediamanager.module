@@ -38,7 +38,7 @@ function mediamanager_admin_form()
 function mediamanager_admin_form_validate($form, &$form_state)
 {
 	// Make sure we can get back the media sizes
-	$sizes = _mediamanager_sizes();
+	$sizes = _mediamanager_sizes($form_state['values']['mediamanager_url']);
 	if (!count($sizes)) {
 		form_set_error('mediamanager_url', 'Cannot connect to Media Manager URL.  Make sure the URL is valid.');
 	}
@@ -328,12 +328,14 @@ function theme_mediamanager_media($var)
  *
  * @return stdClass JSON Response from media manager
  */
-function _mediamanager_sizes()
+function _mediamanager_sizes($mediamanager_url=null)
 {
 	static $response = null;
 
 	if (!$response) {
-		$url = variable_get('mediamanager_url').'/derivatives?format=json';
+        $url = $mediamanager_url
+            ? $mediamanager_url.'/derivatives?format=json'
+            : variable_get('mediamanager_url').'/derivatives?format=json';
 		$response = drupal_http_request($url);
 	}
 	if (isset($response->data)) {
