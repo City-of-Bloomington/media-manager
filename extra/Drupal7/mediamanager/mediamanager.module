@@ -275,8 +275,6 @@ function mediamanager_field_formatter_view($type, $entity, $field, $instance, $l
 
 	switch ($display['type']) {
 		case 'mediamanager_mediaFormatter':
-			$mediamanager_url = variable_get('mediamanager_url');
-
 			foreach ($items as $delta=>$item) {
 				$media = _mediamanager_media_info($item['media_id']);
 				if ($media) {
@@ -318,6 +316,65 @@ function theme_mediamanager_media($var)
 	}
 
 	return theme('image', $var);
+}
+
+/**
+ * Returns the image URL that would be used for theming the field
+ *
+ * This is usuall called from within node.tpl, where the node's content
+ * array has already been created.
+ * You must pass in the content array for the field you're interested in.
+ * ie. $content[field_name][0]
+ *
+ * @param array $contentField The field item from the node content array
+ * @return string
+ */
+function mediamanager_content_field_url(array $var)
+{
+	$url = variable_get('mediamanager_url');
+	$d = date('Y/n/j', strtotime($var['#media']->uploaded));
+
+	if ($var['#size']) {
+		$json = _mediamanager_sizes();
+		$size = $json->$var['#size']->size;
+
+		$f = explode('.', $var['#media']->internalFilename);
+		$path = "$url/m/$d/$size/$f[0].png";
+	}
+	else {
+		$path = "$url/m/$d/{$var['media']->internalFilename}";
+	}
+	return $path;
+}
+
+/**
+ * Returns the URL for a known derivative from media manager
+ *
+ * You must pass in the content array for the field you're interested in.
+ * ie. $content[field_name]
+ * @param array $media_field
+ * @param string $derivativeName
+ * @return string
+ */
+function mediamanager_field_url($media_field, $derivativeName=null)
+{
+    $info = _mediamanager_media_info($media_field['und'][0]['media_id']);
+    $url  = variable_get('mediamanager_url');
+    $date = date('Y/n/j', strtotime($info->uploaded));
+
+    if ($derivativeName) {
+        foreach ($info->derivatives as $d) {
+            if (!empty($d->$derivativeName)) {
+                $size = $d->$derivativeName;
+                $f = explode('.', $info->internalFilename);
+                $path = "$url/m/$date/$size/$f[0].png";
+                return $path;
+            }
+        }
+    }
+    else {
+		return "$url/m/$d/{$info->internalFilename}";
+    }
 }
 
 /**
