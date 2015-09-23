@@ -12,4 +12,8 @@ fi
 
 rsync -rlv --exclude-from=./buildignore --delete ./ ./build/
 
-tar czvf $DIST/Blossom.tar.gz --transform=s/build/Blossom/ $BUILD
+tar czvf $DIST/media-manager.tar.gz --transform=s/build/media-manager/ $BUILD
+
+cd extra/Drupal7
+tar czvf mediamanager.tar.gz mediamanager
+mv mediamanager.tar.gz ../../dist
