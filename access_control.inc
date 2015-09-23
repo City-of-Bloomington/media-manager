@@ -36,7 +36,7 @@ $ZEND_ACL->allow(null,'login');
 $ZEND_ACL->allow(null,
 				['index', 'derivatives'],
 				['index']);
-$ZEND_ACL->allow(null, 'media', ['view', 'resize']);
+$ZEND_ACL->allow(null, 'media', ['view', 'derivative']);
 
 // Allow Staff to do stuff
 $ZEND_ACL->allow('Staff',

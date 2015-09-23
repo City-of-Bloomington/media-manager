@@ -1,6 +1,6 @@
 <?php
 /**
- * @copyright Copyright 2014 Cliff Ingham
+ * @copyright 2014 City of Bloomington, Indiana
  * @license http://www.gnu.org/copyleft/gpl.html GNU/GPL, see LICENSE.txt
  * @author Cliff Ingham <inghamn@bloomington.in.gov>
  * @param Zend\Db\ResultSet $this->media

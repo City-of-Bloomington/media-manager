@@ -14,9 +14,9 @@ if (preg_match(
 	$_SERVER['REQUEST_URI'],
 	$matches)) {
 	$resource = 'media';
-	$action   = 'resize';
-	$_REQUEST['size']     = $matches[1];
-	$_REQUEST['media_id'] = $matches[2];
+	$action   = 'derivative';
+	$_REQUEST['derivative'] = $matches[1];
+	$_REQUEST['media_id']   = $matches[2];
 }
 // Check for default routes
 elseif (preg_match('|'.BASE_URI.'(/([a-zA-Z0-9]+))?(/([a-zA-Z0-9]+))?|',$_SERVER['REQUEST_URI'],$matches)) {
