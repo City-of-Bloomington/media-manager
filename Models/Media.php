@@ -179,8 +179,7 @@ class Media extends ActiveRecord
 	 */
 	public function deleteDerivatives()
 	{
-		$uniqid = preg_replace('/[^.]+$/', '', $this->getInternalFilename());
-		$pattern = SITE_HOME."/media/{$this->getDirectory()}/*/$uniqid*";
+		$pattern = SITE_HOME."/media/{$this->getDirectory()}/*/{$this->getInternalFilename()}";
 
 		foreach(glob($pattern) as $file) { unlink($file); }
 	}
@@ -318,7 +317,7 @@ class Media extends ActiveRecord
 	{
 		$filename = parent::get('internalFilename');
 		if (!$filename) {
-			$filename = uniqid().'.'.self::getExtension($this->getFilename());
+			$filename = uniqid();
 			parent::set('internalFilename', $filename);
 		}
 		return $filename;
@@ -334,10 +333,7 @@ class Media extends ActiveRecord
 		$size = (int)$size;
 
 		if ($size) {
-			preg_match(self::REGEX_FILENAME_EXT, $this->getInternalFilename(), $matches);
-			$filename = $matches[1];
-
-			return SITE_HOME."/media/{$this->getDirectory()}/$size/$filename.png";
+			return SITE_HOME."/media/{$this->getDirectory()}/$size/{$this->getInternalFilename()}";
 		}
 		else {
 			// Return the size of the original
@@ -375,10 +371,6 @@ class Media extends ActiveRecord
 			$url.= "/$size";
 		}
 		$url.= "/{$this->getInternalFilename()}";
-		if ($size) {
-			// All derivatives should be PNG
-			$url = preg_replace('/[^.]+$/', 'png', $url);
-		}
 		return $url;
 	}
 

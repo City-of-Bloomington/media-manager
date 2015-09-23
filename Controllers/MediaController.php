@@ -40,7 +40,7 @@ class MediaController extends Controller
 	 * Create and cache a resized image file
 	 *
 	 * @param REQUEST media_id
-	 * @param REQUEST size
+	 * @param REQUEST derivative
 	 */
 	public function derivative()
 	{

@@ -10,12 +10,11 @@ use Application\Models\Media;
 $size = Media::SIZE_THUMBNAIL;
 $directory = SITE_HOME.'/uploads/'.$_SESSION['USER']->getUsername();
 
-preg_match(Media::REGEX_FILENAME_EXT, $_GET['image'], $matches);
-$filename = $matches[1];
+$filename = $_GET['image'];
 
-if (!is_file("$directory/$size/$filename.png")) {
+if (!is_file("$directory/$size/$filename")) {
 	Image::saveDerivative("$directory/$_GET[image]", $size);
 }
 
 header("Content-type: image/png");
-readfile("$directory/$size/$filename.png");
+readfile("$directory/$size/$filename");

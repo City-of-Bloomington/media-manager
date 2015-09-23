@@ -57,8 +57,7 @@ class Image
 		$size = (int)$size;
 		$directory = dirname($inputFile)."/$size";
 
-		preg_match(Media::REGEX_FILENAME_EXT, basename($inputFile), $matches);
-		$filename = $matches[1];
+		$filename = basename($inputFile);
 
 		if (!is_dir($directory)) {
 			if (!mkdir($directory, 0777, true)) {
@@ -67,7 +66,7 @@ class Image
 		}
 
 		$dimensions = $size.'x'.$size;
-		$newFile = "$directory/$filename.png";
+		$newFile = "$directory/$filename";
 
 		exec(IMAGEMAGICK."/convert $inputFile -channel rgba -alpha set -resize '$dimensions>' $newFile");
 	}
@@ -86,8 +85,7 @@ class Image
 
 		$thumbnailDirectory = "$directory/$size";
 
-		preg_match(Media::REGEX_FILENAME_EXT, $filename, $matches);
-		$resizedFile = $matches[1].'.png';
+		$resizedFile = $filename;
 
 		if (!is_file("$thumbnailDirectory/$resizedFile")) {
 			self::saveDerivative("$directory/$filename", $size);

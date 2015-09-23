@@ -7,6 +7,7 @@
 require_once __DIR__.'/../../configuration.inc';
 
 use Application\Models\Media;
+use Application\Models\Image;
 use Blossom\Classes\Database;
 
 class MediaTest extends PHPUnit_Framework_TestCase
@@ -44,7 +45,7 @@ class MediaTest extends PHPUnit_Framework_TestCase
 		$thumbnail = __DIR__.'/60/Dan.png';
 		$this->filesToCleanUp[] = $thumbnail;
 
-		Media::saveDerivative($this->origFile, 60);
+		Image::saveDerivative($this->origFile, 60);
 		$this->assertTrue(file_exists($thumbnail), 'Thumbnail not generated');
 	}
 
@@ -53,7 +54,7 @@ class MediaTest extends PHPUnit_Framework_TestCase
 	 */
 	public function testGetURL()
 	{
-		$temp = __DIR__."/temp.png";
+		$temp = __DIR__."/temp";
 
 		$zend_db = Database::getConnection();
 		$result = $zend_db->query("select * from media where media_type='image' limit 1")->execute();
@@ -85,7 +86,7 @@ class MediaTest extends PHPUnit_Framework_TestCase
 	 */
 	public function testAutogenerateThumbnailsByURL()
 	{
-		$temp = __DIR__."/temp.png";
+		$temp = __DIR__."/temp";
 
 		$zend_db = Database::getConnection();
 		// We have to choose a valid size, otherwise it will really 404

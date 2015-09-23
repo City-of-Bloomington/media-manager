@@ -10,7 +10,7 @@ use Blossom\Classes\Block;
 
 // Check for Media thumbnail requests
 if (preg_match(
-	'#'.BASE_URI.'/m/\d{4}/\d{1,2}/\d{1,2}/(\d+)/([a-f0-9]+\.[a-z]+)#',
+	'#'.BASE_URI.'/m/\d{4}/\d{1,2}/\d{1,2}/(\d+)/([0-9a-f]{13})#',
 	$_SERVER['REQUEST_URI'],
 	$matches)) {
 	$resource = 'media';
