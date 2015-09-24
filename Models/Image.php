@@ -49,15 +49,15 @@ class Image
 	 * The sizes array determines the output filetype (gif,jpg,png)
 	 * ie. /var/www/sites/photobase/uploads/username/something.jpg
 	 *
-	 * @param string $inputFile Full path to an image file
+	 * @param string $masterFile Full path to an image file
 	 * @param string $size The desired bounding box size
 	 */
-	public static function saveDerivative($inputFile, $size)
+	public static function saveDerivative($masterFile, $size, $derivativeFile=null)
 	{
 		$size = (int)$size;
-		$directory = dirname($inputFile)."/$size";
+		$directory = dirname($masterFile)."/$size";
 
-		$filename = basename($inputFile);
+		$filename = basename($masterFile);
 
 		if (!is_dir($directory)) {
 			if (!mkdir($directory, 0777, true)) {
@@ -68,7 +68,12 @@ class Image
 		$dimensions = $size.'x'.$size;
 		$newFile = "$directory/$filename";
 
-		exec(IMAGEMAGICK."/convert $inputFile -channel rgba -alpha set -resize '$dimensions>' $newFile");
+		if (is_file($derivativeFile)) {
+            rename ($derivativeFile, $newFile);
+		}
+		else {
+            exec(IMAGEMAGICK."/convert $masterFile -channel rgba -alpha set -resize '$dimensions>' $newFile");
+        }
 	}
 
 	/**

@@ -125,3 +125,6 @@ header nav a { font-weight:bold; color:black; }
 
 tr.current { background-color:#ccc; }
 a.current { font-weight:bold; }
+
+#mediaView article h1 { font-weight:bold; font-size:120%; }
+#mediaView article img { max-width:60px; max-height:60px; float:left;  margin-right:1em; }

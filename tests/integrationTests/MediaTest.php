@@ -49,6 +49,19 @@ class MediaTest extends PHPUnit_Framework_TestCase
 		$this->assertTrue(file_exists($thumbnail), 'Thumbnail not generated');
 	}
 
+	public function testSaveCustomDerivative()
+	{
+        $thumbnail = __DIR__.'/test-thumbnail.png';
+        copy($thumbnail, __DIR__.'/temp');
+
+        $expectedDerivativeFile = __DIR__.'/100/Dan.png';
+
+        $this->filesToCleanUp[] = $expectedDerivativeFile;
+
+        Image::saveDerivative($this->origFile, 100, __DIR__.'/temp');
+        $this->assertTrue(file_exists($expectedDerivativeFile), 'Custom derivative not saved');
+	}
+
 	/**
 	 * Make sure the URL for the image is web accessible
 	 */

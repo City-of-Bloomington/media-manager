@@ -10,6 +10,7 @@ use Application\Models\Media;
 use Application\Models\DerivativesTable;
 use Blossom\Classes\View;
 ?>
+<section id="mediaView">
 <h2><?php
 		echo "{$this->media->getId()} ";
 
@@ -79,14 +80,32 @@ use Blossom\Classes\View;
 	$table = new DerivativesTable();
 	$sizes = $table->find();
 	if (count($sizes)) {
-		echo '<table>';
+        $userCanEditDerivatives = Person::isAllowed('media', 'saveDerivative');
 		foreach ($sizes as $size) {
 			$name = View::escape($size->getName());
 			$url = $this->media->getUrl($size->getSize());
 			echo "
-			<tr><th>$name</th><td><a href=\"$url\">$url</a></td></tr>
-			";
+			<article>
+                <a href=\"$url\"><img src=\"$url\" /></a>
+                <h1>$name</h1>
+                <div><a href=\"$url\">$url</a></div>
+            ";
+                if ($userCanEditDerivatives) {
+                    echo "
+                    <form method=\"post\" action=\"".BASE_URI."/media/saveDerivative\" enctype=\"multipart/form-data\">
+                        <fieldset>
+                            <input name=\"derivativeFile\" type=\"file\" />
+                            <input name=\"media_id\"   type=\"hidden\" value=\"{$this->media->getId()}\" />
+                            <input name=\"derivative\" type=\"hidden\" value=\"{$size->getSize()}\" />
+                            <button type=\"submit\"><i class=\"fa fa-upload\"></i> Upload</button>
+                        </fieldset>
+                    </form>
+                    ";
+                }
+            echo "
+			</article>
+            ";
 		}
-		echo '</table>';
 	}
 ?>
+</section>
