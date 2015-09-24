@@ -5,6 +5,7 @@
 .git/
 .git*
 configuration.inc
+site_config.inc
 /data/media/*
 /data/sessions/*
 /data/uploads/*
