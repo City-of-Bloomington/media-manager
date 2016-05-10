@@ -1,32 +1,19 @@
 <?php
 /**
- * @copyright 2013-2014 City of Bloomington, Indiana
+ * @copyright 2013-2016 City of Bloomington, Indiana
  * @license http://www.gnu.org/licenses/agpl.txt GNU/AGPL, see LICENSE.txt
- * @author Cliff Ingham <inghamn@bloomington.in.gov>
  */
 namespace Application\Templates\Helpers;
 
-use Blossom\Classes\Template;
+use Blossom\Classes\Helper;
 
-class SaveAndCancelButtons
+class SaveAndCancelButtons extends Helper
 {
-	private $template;
-
-	public function __construct(Template $template)
-	{
-		$this->template = $template;
-	}
-
 	public function saveAndCancelButtons($cancelURL)
 	{
-		$buttons = "
-		<button type=\"submit\"><span class=\"fa fa-save\"></span>
-			{$this->template->_('save')}
-		</button>
-		<a class=\"btn\" href=\"$cancelURL\"><span class=\"fa fa-undo\"></span>
-			{$this->template->_('cancel')}
-		</a>
+		return "
+		<button type=\"submit\" class=\"save\">{$this->template->_('save')}</button>
+		<a href=\"$cancelURL\"  class=\"cancel\">{$this->template->_('cancel')}</a>
 		";
-		return $buttons;
 	}
 }

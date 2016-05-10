@@ -17,12 +17,11 @@ class DepartmentsController extends Controller
 {
 	private function loadDepartment($id)
 	{
-		try {
-			return new Department($_REQUEST['department_id']);
-		}
+		try { return new Department($id); }
 		catch (\Exception $e) {
 			$_SESSION['errorMessages'][] = $e;
-			header('Location: '.BASE_URL.'/departments');
+			$url = self::generateUrl('departments.index');
+			header('Location: '.$url);
 			exit();
 		}
 	}
@@ -31,51 +30,40 @@ class DepartmentsController extends Controller
 	{
 		$table = new DepartmentTable();
 		$list = $table->find();
-		$this->template->blocks[] = new Block('departments/list.inc', ['departments'=>$list]);
+
+		return new \Application\Views\Departments\ListView(['departments'=>$list]);
 	}
 
 	public function view()
 	{
-		$department = $this->loadDepartment($_GET['department_id']);
-		$this->template->blocks[] = new Block('departments/view.inc', ['department'=>$department]);
-
-		$page = !empty($_GET['page']) ? (int)$_GET['page'] : 1;
-		$table = new MediaTable();
-		$media = $table->find(['department_id'=>$department->getId()], null, true);
-		$media->setCurrentPageNumber($page);
-		$media->setItemCountPerPage(20);
-		$this->template->blocks[] = new Block('media/thumbnails.inc', ['media'=>$media]);
-		$this->template->blocks[] = new Block('pageNavigation.inc', ['paginator'=>$media]);
-
-
-
-		$table = new PeopleTable();
-		$people = $table->find(['department_id'=>$department->getId()], null, true);
-		$this->template->blocks[] = new Block('people/list.inc', ['people'=>$people]);
+        if (!empty($_GET['id'])) {
+            $department = $this->loadDepartment($_GET['id']);
+            return new \Application\Views\Departments\InfoView(['department'=>$department]);
+        }
+        else {
+            return \Application\Views\NotFoundView();
+        }
 
 	}
 
 	public function update()
 	{
-		if (!empty($_REQUEST['department_id'])) {
-			$department = $this->loadDepartment($_REQUEST['department_id']);
-		}
-		else {
-			$department = new Department();
-		}
+        $department = !empty($_REQUEST['id'])
+			? $this->loadDepartment($_REQUEST['id'])
+			: new Department();
 
 		if (isset($_POST['name'])) {
 			try {
 				$department->handleUpdate($_POST);
 				$department->save();
-				header('Location: '.BASE_URI.'/departments/view?department_id='.$department->getId());
+				$url = self::generateUrl('departments.view', ['id'=>$department->getId()]);
+				header('Location: '.$url);
 				exit();
 			}
 			catch (\Exception $e) {
 				$_SESSION['errorMessages'][] = $e;
 			}
 		}
-
-		$this->template->blocks[] = new Block('departments/updateForm.inc', ['department'=>$department]);
+		return new \Application\Views\Departments\UpdateView(['department'=>$department]);
 	}
 }

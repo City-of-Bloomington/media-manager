@@ -1,58 +1,65 @@
 <?php
 /**
- * @copyright 2006-2014 City of Bloomington, Indiana
+ * @copyright 2006-2016 City of Bloomington, Indiana
  * @license http://www.gnu.org/licenses/agpl.txt GNU/AGPL, see LICENSE.txt
- * @author Cliff Ingham <inghamn@bloomington.in.gov>
  * @param User $this->user
  */
 use Application\Models\Person;
-use Blossom\Classes\View;
 
+$fields = ['id', 'authenticationMethod', 'role', 'username', 'email'];
+foreach ($fields as $f) {
+    $get = 'get'.ucfirst($f);
+    $$f = self::escape($this->user->$get());
+}
+
+$title = $this->user->getId() ? $this->_('user_edit') : $this->_('user_add');
 ?>
-<div class="updateUserForm">
-	<form method="post" action="<?php echo BASE_URI; ?>/users/update">
-		<fieldset><legend><?php echo $this->_(['user','users',2]); ?></legend>
-			<input name="user_id" type="hidden" value="<?php echo $this->user->getId(); ?>" />
-			<table>
-				<tr><td><label for="authenticationMethod"><?php echo $this->_('authenticationMethod'); ?></label></td>
-					<td><select name="authenticationMethod" id="authenticationMethod">
-						<?php
-							foreach (Person::getAuthenticationMethods() as $method) {
-								$selected = $this->user->getAuthenticationMethod()==$method
-									? 'selected="selected"'
-									: '';
-								echo "<option $selected>$method</option>";
-							}
-						?>
-						</select>
-					</td>
-				</tr>
-				<tr><td><label for="username"><?php echo $this->_('username'); ?></label></td>
-					<td><input name="username" id="username" value="<?php echo View::escape($this->user->getUsername()); ?>" />
-					</td>
-				</tr>
-				<tr><td><label for="password"><?php echo $this->_('password'); ?></label></td>
-					<td><input name="password" id="password" /></td>
-				</tr>
-				<tr><td><label for="role"><?php echo $this->_('role'); ?></label></td>
-					<td><select name="role" id="role"><option></option>
-						<?php
-							global $ZEND_ACL;
-							foreach (array_reverse($ZEND_ACL->getRoles()) as $role) {
-								$selected = $this->user->getRole()==$role
-									? 'selected="selected"'
-									: '';
-								echo "<option $selected>$role</option>";
-							}
-						?>
-						</select>
-					</td>
-				</tr>
-			</table>
+<section>
+    <header>
+        <h1><?= $title; ?></h1>
+    </header>
+
+	<form method="post" action="<?= self::generateUri('users.update'); ?>">
+		<fieldset><legend><?= $this->_('user_info'); ?></legend>
+			<input name="id" type="hidden" value="<?= $this->user->getId(); ?>" />
+
+            <dl><dt><label  for="authenticationMethod"><?= $this->_('authenticationMethod'); ?></label></dt>
+                <dd><select name="authenticationMethod" id="authenticationMethod" required="true">
+                    <?php
+                        foreach (Person::getAuthenticationMethods() as $method) {
+                            $selected = $authenticationMethod === $method
+                                ? 'selected="selected"'
+                                : '';
+                            echo "<option $selected>$method</option>";
+                        }
+                    ?>
+                    </select>
+                </dd>
+            </dl>
+            <?php
+                $field = $this->template->getHelper('field');
+                echo $field->input(['name'=>'username', 'id'=>'username', 'label'=>$this->_('username'), 'value'=>$username, 'required'=>true]);
+                echo $field->input(['name'=>'password', 'id'=>'password', 'label'=>$this->_('password'), 'type'=>'password']);
+				echo $field->input(['name'=>'email',    'id'=>'email',    'label'=>$this->_('email'   ), 'value'=>$email]);
+            ?>
+            <dl><dt><label  for="role"><?= $this->_('role'); ?></label></dt>
+                <dd><select name="role" id="role" required="true"><option></option>
+                    <?php
+                        global $ZEND_ACL;
+                        foreach (array_reverse($ZEND_ACL->getRoles()) as $role) {
+                            $selected = $this->user->getRole()==$role
+                                ? 'selected="selected"'
+                                : '';
+                            echo "<option $selected>$role</option>";
+                        }
+                    ?>
+                    </select>
+                </dd>
+            </dl>
 			<?php
-				$h = $this->template->getHelper('saveAndCancelButtons');
-				echo $h->saveAndCancelButtons(BASE_URI.'/users');
+				$helper = $this->template->getHelper('saveAndCancelButtons');
+				echo $helper->saveAndCancelButtons(self::generateUri('users.index'));
 			?>
 		</fieldset>
 	</form>
-</div>
+</section>

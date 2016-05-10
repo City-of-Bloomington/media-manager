@@ -10,7 +10,6 @@ use Application\Models\Search;
 use Blossom\Classes\Url;
 use Blossom\Classes\View;
 
-$this->template->addToAsset('scripts', YUI.'/yui/yui-min.js');
 $this->template->addToAsset('scripts', BASE_URI.'/js/collapsible.js');
 
 $search = !empty($_GET['search'])             ? View::escape($_GET['search'])             : '';
@@ -46,8 +45,10 @@ $height = !empty($_GET['aspectRatio_height']) ? View::escape($_GET['aspectRatio_
 					if ($list) {
 						echo "
 						<div class=\"collapsible\">
-							<h3 class=\"hd\">$name</h3>
-							<ul class=\"bd\">$list</ul>
+							<h3 class=\"hd\" id=\"$field\" aria-haspopup=\"true\" aria-expanded=\"false\">
+                                $name
+                            </h3>
+							<ul class=\"bd\" aria-labeledby=\"$field\">$list</ul>
 						</div>
 						";
 					}

@@ -1,60 +1,52 @@
 <?php
 /**
- * @copyright 2009-2013 City of Bloomington, Indiana
+ * @copyright 2009-2016 City of Bloomington, Indiana
  * @license http://www.gnu.org/licenses/agpl.txt GNU/AGPL, see LICENSE.txt
- * @author Cliff Ingham <inghamn@bloomington.in.gov>
  * @param Person $this->person
  */
 use Application\Models\DepartmentTable;
-use Blossom\Classes\View;
 
-$fields = array('firstname','lastname','email');
+$fields = ['firstname','lastname','email', 'department_id'];
 foreach ($fields as $field) {
 	$get = 'get'.ucfirst($field);
-	$$field = View::escape($this->person->$get());
+	$$field = self::escape($this->person->$get());
 }
-$title = $this->person->getId() ? View::escape('Edit '.$this->person->getFirstname()) : 'Add Someone';
+$title = $this->person->getId() ? self::escape('Edit '.$this->person->getFirstname()) : $this->_('person_add');
 ?>
-<div class="updatePersonForm">
-	<h2><?php echo $title; ?></h2>
-	<form method="post" action="<?php echo BASE_URI; ?>/people/update">
-		<fieldset><legend><?php echo $this->_('info_person'); ?></legend>
-			<input name="person_id" type="hidden" value="<?php echo $this->person->getId(); ?>" />
+<section>
+    <header>
+        <h1><?= $title; ?></h1>
+    </header>
 
-			<table>
-				<tr><td><label for="firstname" class="required"><?php echo $this->_('firstname'); ?></label></td>
-					<td><input name="firstname" id="firstname" value="<?php echo $firstname; ?>" /></td>
-				</tr>
+	<form method="post" action="<?= self::generateUri('people.update'); ?>">
+		<fieldset><legend><?= $this->_('person_info'); ?></legend>
+			<input name="id" type="hidden" value="<?= $this->person->getId(); ?>" />
+            <?php
+                $field = $this->template->getHelper('field');
+                echo $field->input(['name'=>'firstname', 'id'=>'firstname', 'label'=>$this->_('firstname'), 'value'=>$firstname, 'required'=>true]);
+                echo $field->input(['name'=>'lastname',  'id'=>'lastname',  'label'=>$this->_('lastname'),  'value'=>$lastname,  'required'=>true]);
+                echo $field->input(['name'=>'email',     'id'=>'email',     'label'=>$this->_('email'),     'value'=>$email]);
 
-				<tr><td><label for="lastname" class="required"><?php echo $this->_('lastname'); ?></label></td>
-					<td><input name="lastname" id="lastname" value="<?php echo $lastname; ?>" /></td>
-				</tr>
+                echo "
+                <dl><dt><label   for=\"department_id\">{$this->_('department')}</label></dt>
+                    <dd><select name=\"department_id\">
+                ";
+                        $table = new DepartmentTable();
+                        $list = $table->find();
+                        foreach ($list as $d) {
+                            $name = self::escape($d->getName());
+                            $selected = $d->getId() == $department_id ? 'selected="true"' : '';
+                            echo "<option value=\"{$d->getId()}\" $selected>$name</option>";
+                        }
+                echo "
+                        </select>
+                    </dd>
+                </dl>
+                ";
 
-				<tr><td><label for="email"><?php echo $this->_(['email', 'emails', 1]); ?></label></td>
-					<td><input name="email" id="email" value="<?php echo $email; ?>" /></td>
-				</tr>
-
-				<tr><td><label for="department_id"><?php echo $this->_(['department', 'departments', 1]); ?></label></td>
-					<td><select name="department_id">
-						<?php
-							$table = new DepartmentTable();
-							$list = $table->find();
-							foreach ($list as $d) {
-								$name = View::escape($d->getName());
-								$selected = $this->person->getDepartment_id()==$d->getId()
-									? 'selected="selected"'
-									: '';
-								echo "<option value=\"{$d->getId()}\" $selected>$name</option>";
-							}
-						?>
-						</select>
-					</td>
-				</tr>
-			</table>
-			<?php
 				$h = $this->template->getHelper('saveAndCancelButtons');
 				echo $h->saveAndCancelButtons(BASE_URI.'/people');
 			?>
 		</fieldset>
 	</form>
-</div>
+</section>

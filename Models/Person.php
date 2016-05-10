@@ -12,6 +12,7 @@ use Blossom\Classes\ExternalIdentity;
 class Person extends ActiveRecord
 {
 	protected $tablename = 'people';
+	protected $department;
 
 	/**
 	 * Populates the object with data

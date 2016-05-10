@@ -1,56 +1,50 @@
 <?php
 /**
- * @copyright 2009-2014 City of Bloomington, Indiana
+ * @copyright 2009-2016 City of Bloomington, Indiana
  * @license http://www.gnu.org/licenses/agpl.txt GNU/AGPL, see LICENSE.txt
- * @author Cliff Ingham <inghamn@bloomington.in.gov>
- * @param Zend\Db\ResultSet $this->people
+ * @param array $this->people
  */
 use Application\Models\Person;
-use Blossom\Classes\View;
+use Blossom\Classes\Url;
 ?>
-<div class="interfaceBox">
-	<h2><?php
-			echo $this->translate(['person','people',2]);
+<section>
+    <header>
+        <h1><?= $this->_(['person','people',2]); ?></h1>
+        <div class="tools">
+        <?php
+            $return_url = Url::current_url();
+            $helper = $this->template->getHelper('buttonLink');
 
-			$helper = $this->template->getHelper('buttonLink');
+            if (Person::isAllowed('people', 'add')) {
+                echo $helper->buttonLink(
+                    self::generateUri('people.update')."?return_url=$return_url",
+                    $this->_('person_add'),
+                    'add'
+                );
+            }
+        ?>
+        </div>
+    </header>
 
-			if (Person::isAllowed('people')) {
-				echo $helper->buttonLink(
-					BASE_URI.'/people/update',
-					$this->translate('add_person'),
-					'add'
-				);
-			}
-		?>
-	</h2>
 	<table>
 		<thead>
-			<tr><th></th>
-				<th><?php echo $this->_('username'); ?></th>
-				<th><?php echo $this->_('name'); ?></th>
-				<th><?php echo $this->_(['email','emails',1]); ?></th>
-				<th><?php echo $this->_(['department', 'departments', 1]); ?></th>
+			<tr><th><?= $this->_('username'); ?></th>
+				<th><?= $this->_('name'); ?></th>
+				<th><?= $this->_('email'); ?></th>
+				<th><?= $this->_('department'); ?></th>
 			</tr>
 		</thead>
 		<tbody>
 		<?php
 			foreach ($this->people as $person) {
-				$editButton = '';
-				if (Person::isAllowed('people')) {
-					$editButton = $helper->buttonLink(
-						BASE_URI.'/people/update?person_id='.$person->getId(),
-						$this->translate('edit'),
-						'edit'
-					);
-				}
+				$name = self::escape($person->getFullname());
+				$url  = self::generateUri('people.view', ['id'=>$person->getId()]);
+				$d    = self::escape($person->getDepartment());
 
-				$name = View::escape($person->getFullname());
-				$d = View::escape($person->getDepartment());
 				echo "
-				<tr><td>$editButton</td>
-					<td>{$person->getUsername()}</td>
-					<td><a href=\"{$person->getURL()}\">$name</a></td>
-					<td>{$person->getEmail()}</td>
+				<tr><td><a href=\"$url\">{$person->getUsername()}</a></td>
+					<td><a href=\"$url\">$name</a></td>
+					<td><a href=\"$url\">{$person->getEmail()}</a></td>
 					<td>$d</td>
 				</tr>
 				";
@@ -58,4 +52,4 @@ use Blossom\Classes\View;
 		?>
 		</tbody>
 	</table>
-</div>
+</section>

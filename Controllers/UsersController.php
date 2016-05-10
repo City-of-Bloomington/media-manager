@@ -1,66 +1,82 @@
 <?php
 /**
- * @copyright 2012-2013 City of Bloomington, Indiana
+ * @copyright 2012-2016 City of Bloomington, Indiana
  * @license http://www.gnu.org/licenses/agpl.txt GNU/AGPL, see LICENSE.txt
- * @author Cliff Ingham <inghamn@bloomington.in.gov>
  */
 namespace Application\Controllers;
+
 use Application\Models\Person;
 use Application\Models\PeopleTable;
 use Blossom\Classes\Controller;
 use Blossom\Classes\Block;
-use Blossom\Classes\Database;
-use Zend\Paginator\Paginator;
-use Zend\Paginator\Adapter\DbSelect;
 
 class UsersController extends Controller
 {
 	public function index()
 	{
 		$people = new PeopleTable();
-		$users = $people->find(['user_account'=>true], null, true);
-
 		$page = !empty($_GET['page']) ? (int)$_GET['page'] : 1;
-		$users->setCurrentPageNumber($page);
-		$users->setItemCountPerPage(20);
+		$users = $people->find(['user_account'=>true], null, 20, $page);
 
-		$this->template->blocks[] = new Block('users/list.inc',array('users'=>$users));
-		$this->template->blocks[] = new Block('pageNavigation.inc', ['paginator'=>$users]);
+		return new \Application\Views\Users\ListView(['users'=>$users]);
 	}
 
 	public function update()
 	{
-		$person = isset($_REQUEST['user_id']) ? new Person($_REQUEST['user_id']) : new Person();
+        if (!empty($_REQUEST['id'])) {
+            try { $person = new Person($_REQUEST['id']); }
+            catch (\Exception $e) { $_SESSION['errorMessages'][] = $e; }
+        }
+        else {
+            $person = new Person();
+        }
 
-		if (isset($_POST['username'])) {
-			try {
-				$person->handleUpdateUserAccount($_POST);
-				$person->save();
-				header('Location: '.BASE_URL.'/users');
-				exit();
-			}
-			catch (\Exception $e) {
-				$_SESSION['errorMessages'][] = $e;
-			}
-		}
+        if (isset($person)) {
+            if (isset($_POST['username'])) {
+                try {
+                    $person->handleUpdateUserAccount($_POST);
+                    // We might have populated this person's information from LDAP
+                    // We need to do a new lookup in the system, to see if a person
+                    // with their email address already exists.
+                    // If they already exist, we should add the account info to that
+                    // person record.
+                    if (!$person->getId() && $person->getEmail()) {
+                        try {
+                            $existingPerson = new Person($person->getEmail());
+                            $existingPerson->handleUpdateUserAccount($_POST);
+                        }
+                        catch (\Exception $e) { }
+                    }
 
-		if ($person->getId()) {
-			$this->template->blocks[] = new Block('people/info.inc',array('person'=>$person));
-		}
-		$this->template->blocks[] = new Block('users/updateForm.inc',array('user'=>$person));
+                    if (isset($existingPerson)) { $existingPerson->save(); }
+                    else { $person->save(); }
+
+                    header('Location: '.BASE_URL.'/users');
+                    exit();
+                }
+                catch (\Exception $e) {
+                    $_SESSION['errorMessages'][] = $e;
+                }
+            }
+
+            return new \Application\Views\Users\UpdateView(['user' => $person]);
+        }
+        else {
+            return new \Applications\Views\NotFoundView();
+        }
 	}
 
 	public function delete()
 	{
 		try {
-			$person = new Person($_REQUEST['user_id']);
+			$person = new Person($_REQUEST['id']);
 			$person->deleteUserAccount();
 			$person->save();
 		}
 		catch (\Exception $e) {
 			$_SESSION['errorMessages'][] = $e;
 		}
-		header('Location: '.BASE_URL.'/users');
+		header('Location: '.self::generateUrl('users.index'));
 		exit();
 	}
 }
