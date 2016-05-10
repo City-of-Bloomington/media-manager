@@ -2,6 +2,16 @@ configuration.inc
 site_config.inc
 data/media/*
 data/sessions/*
-data/uploads/*
 build
 dist
+*.mo
+screen.css
+screen.css.map
+.sass-cache
+node_modules
+package.json
+gulpfile.js
+.ftppass
+.gulp-build
+vendor
+composer.lock
