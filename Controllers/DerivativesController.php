@@ -1,15 +1,13 @@
 <?php
 /**
- * @copyright 2014 City of Bloomington, Indiana
+ * @copyright 2014-2016 City of Bloomington, Indiana
  * @license http://www.gnu.org/licenses/agpl.txt GNU/AGPL, see LICENSE.txt
- * @author Cliff Ingham <inghamn@bloomington.in.gov>
  */
 namespace Application\Controllers;
 
 use Application\Models\Derivative;
 use Application\Models\DerivativesTable;
 use Blossom\Classes\Controller;
-use Blossom\Classes\Block;
 
 class DerivativesController extends Controller
 {
@@ -17,18 +15,21 @@ class DerivativesController extends Controller
 	{
 		$table = new DerivativesTable();
 		$derivatives = $table->find();
-		$this->template->blocks[] = new Block('derivatives/list.inc', ['derivatives'=>$derivatives]);
+
+		return new \Application\Views\Derivatives\ListView(['derivatives'=>$derivatives]);
 	}
 
 	public function update()
 	{
-		if (!empty($_REQUEST['derivative_id'])) {
+        $return_url = self::generateUrl('derivatives.index');
+
+		if (!empty($_REQUEST['id'])) {
 			try {
-				$derivative = new Derivative($_REQUEST['derivative_id']);
+				$derivative = new Derivative($_REQUEST['id']);
 			}
 			catch (\Exception $e) {
 				$_SESSION['errorMessages'][] = $e;
-				header('Location: '.BASE_URL.'/derivatives');
+				header('Location: '.$return_url);
 				exit();
 			}
 		}
@@ -40,7 +41,7 @@ class DerivativesController extends Controller
 			try {
 				$derivative->handleUpdate($_POST);
 				$derivative->save();
-				header('Location: '.BASE_URL.'/derivatives');
+				header('Location: '.$return_url);
 				exit();
 			}
 			catch (\Exception $e) {
@@ -48,6 +49,6 @@ class DerivativesController extends Controller
 			}
 		}
 
-		$this->template->blocks[] = new Block('derivatives/updateForm.inc', ['derivative'=>$derivative]);
+		return new \Application\Views\Derivatives\UpdateView(['derivative'=>$derivative]);
 	}
 }

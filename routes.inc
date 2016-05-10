@@ -54,6 +54,14 @@ $ROUTES->attach('departments', '/departments', function ($r) {
     $r->add('update', '/update{/id}')->addValues(['action'=>'update']);
 });
 
+$ROUTES->attach('derivatives', '/derivatives', function ($r) {
+    $r->setTokens(['id'=>'[0-9]+']);
+    $r->setValues(['controller'=>'derivatives']);
+
+    $r->add('index',  '')            ->addValues(['action'=>'index' ]);
+    $r->add('update', '/update{/id}')->addValues(['action'=>'update']);
+});
+
 $NAV1 = [
     ['msgid'=>'home',                  'uri'=>$ROUTES->generate('home')],
     ['msgid'=>['person', 'people', 2], 'uri'=>$ROUTES->generate('people.index')]
