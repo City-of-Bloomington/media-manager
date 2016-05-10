@@ -1,21 +1,30 @@
 <?php
 /**
- * @copyright 2013 City of Bloomington, Indiana
+ * @copyright 2013-2016 City of Bloomington, Indiana
  * @license http://www.gnu.org/licenses/agpl.txt GNU/AGPL, see LICENSE.txt
  * @author Cliff Ingham <inghamn@bloomington.in.gov>
  */
 namespace Application\Models;
 
+use Blossom\Classes\Paginator;
 use Blossom\Classes\TableGateway;
-use Zend\Db\Sql\Select;
 
 class PeopleTable extends TableGateway
 {
-	public function __construct() { parent::__construct('people', __namespace__.'\Person'); }
+    public function __construct() { parent::__construct('people', __namespace__.'\Person'); }
 
-	public function find($fields=null, $order='lastname', $paginated=false, $limit=null)
+	/**
+	 * @param array $fields Key value pairs to select on
+	 * @param array $order The default ordering to use for select
+	 * @param int $itemsPerPage
+	 * @param int $currentPage
+	 * @return array|Paginator
+	 */
+	public function find($fields=null, $order=['lastname'], $itemsPerPage=null, $currentPage=null)
 	{
-		$select = new Select('people');
+        $select = $this->queryFactory->newSelect();
+        $select->cols(['p.*'])
+               ->from('people as p');
 		if (count($fields)) {
 			foreach ($fields as $key=>$value) {
 				switch ($key) {
@@ -29,10 +38,10 @@ class PeopleTable extends TableGateway
 					break;
 
 					default:
-						$select->where([$key=>$value]);
+                        $select->where("$key=?", $value);
 				}
 			}
 		}
-		return parent::performSelect($select, $order, $paginated, $limit);
+		return parent::performSelect($select, $itemsPerPage, $currentPage);
 	}
 }

@@ -1,8 +1,7 @@
 <?php
 /**
- * @copyright 2014 City of Bloomington, Indiana
+ * @copyright 2014-2016 City of Bloomington, Indiana
  * @license http://www.gnu.org/licenses/agpl.txt GNU/AGPL, see LICENSE.txt
- * @author Cliff Ingham <inghamn@bloomington.in.gov>
  */
 namespace Application\Models;
 
@@ -29,20 +28,20 @@ class Department extends ActiveRecord
 	{
 		if ($id) {
 			if (is_array($id)) {
-				$this->exchangeArray($id);
+				$this->data = $id;
 			}
 			else {
-				$zend_db = Database::getConnection();
+                $pdo = Database::getConnection();
 				if (ActiveRecord::isId($id)) {
 					$sql = 'select * from departments where id=?';
 				}
 				else {
 					$sql = 'select * from departments where name=?';
 				}
-				$result = $zend_db->createStatement($sql)->execute([$id]);
-				if (count($result)) {
-					$this->exchangeArray($result->current());
-				}
+				$rows = parent::doQuery($sql, [$id]);
+                if (count($rows)) {
+                    $this->data = $rows[0];
+                }
 				else {
 					throw new Exception('departments/unknownDepartment');
 				}
@@ -80,13 +79,7 @@ class Department extends ActiveRecord
 	public function __toString() { return $this->getName(); }
 
 	/**
-	 * @return string
-	 */
-	public function getUrl() { return BASE_URL.'/departments/view?department_id='.$this->getId(); }
-	public function getUri() { return BASE_URI.'/departments/view?department_id='.$this->getId(); }
-
-	/**
-	 * @return Zend\Db\ResultSet
+	 * @return array An array of Person objects
 	 */
 	public function getPeople()
 	{
@@ -95,7 +88,7 @@ class Department extends ActiveRecord
 	}
 
 	/**
-	 * @return Zend\Db\ResultSet
+	 * @return array An array of Media objects
 	 */
 	public function getMedia()
 	{

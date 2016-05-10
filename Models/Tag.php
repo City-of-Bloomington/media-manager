@@ -1,8 +1,7 @@
 <?php
 /**
- * @copyright 2014 City of Bloomington, Indiana
+ * @copyright 2014-2016 City of Bloomington, Indiana
  * @license http://www.gnu.org/licenses/agpl.txt GNU/AGPL, see LICENSE.txt
- * @author Cliff Ingham <inghamn@bloomington.in.gov>
  */
 namespace Application\Models;
 
@@ -29,20 +28,19 @@ class Tag extends ActiveRecord
 	{
 		if ($id) {
 			if (is_array($id)) {
-				$this->exchangeArray($id);
+				$this->data = $id;
 			}
 			else {
-				$zend_db = Database::getConnection();
 				if (ActiveRecord::isId($id)) {
 					$sql = 'select * from tags where id=?';
 				}
 				else {
 					$sql = 'select * from tags where name=?';
 				}
-				$result = $zend_db->createStatement($sql)->execute([$id]);
-				if (count($result)) {
-					$this->exchangeArray($result->current());
-				}
+				$rows = parent::doQuery($sql, [$id]);
+                if (count($rows)) {
+                    $this->data = $rows[0];
+                }
 				else {
 					throw new \Exception('tags/unknownTag');
 				}

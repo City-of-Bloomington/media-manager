@@ -5,14 +5,10 @@
  * This adds functions to generic Media that deal with Images
  * Image data is stored in a seperate table, so it still extends ActiveRecord
  *
- * @copyright 2014 City of Bloomington, Indiana
+ * @copyright 2014-2016 City of Bloomington, Indiana
  * @license http://www.gnu.org/licenses/agpl.txt GNU/AGPL, see LICENSE.txt
- * @author Cliff Ingham <inghamn@bloomington.in.gov>
  */
 namespace Application\Models;
-
-use Blossom\Classes\ActiveRecord;
-use Blossom\Classes\Database;
 
 class Image
 {

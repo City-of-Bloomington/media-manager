@@ -13,14 +13,17 @@ class MediaTable extends TableGateway
 {
 	public function __construct() { parent::__construct('media', __namespace__.'\Media'); }
 
-	public function find($fields=null, $order='uploaded desc', $paginated=false, $limit=null)
+	public function find($fields=null, $order=['uploaded desc'], $paginated=false, $limit=null)
 	{
 		$select = new Select('media');
+        $select = $this->queryFactory->newSelect();
+        $select->cols(['m.*'])
+               ->from('media m');
 		if (count($fields)) {
 			foreach ($fields as $key=>$value) {
 				switch ($key) {
 					default:
-						$select->where([$key=>$value]);
+                        $select->where("$key=?", $value);
 				}
 			}
 		}

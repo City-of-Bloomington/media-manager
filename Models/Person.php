@@ -1,10 +1,10 @@
 <?php
 /**
- * @copyright 2009-2013 City of Bloomington, Indiana
+ * @copyright 2009-2016 City of Bloomington, Indiana
  * @license http://www.gnu.org/licenses/agpl.txt GNU/AGPL, see LICENSE.txt
- * @author Cliff Ingham <inghamn@bloomington.in.gov>
  */
 namespace Application\Models;
+
 use Blossom\Classes\ActiveRecord;
 use Blossom\Classes\Database;
 use Blossom\Classes\ExternalIdentity;
@@ -12,7 +12,6 @@ use Blossom\Classes\ExternalIdentity;
 class Person extends ActiveRecord
 {
 	protected $tablename = 'people';
-	protected $department;
 
 	/**
 	 * Populates the object with data
@@ -30,10 +29,9 @@ class Person extends ActiveRecord
 	{
 		if ($id) {
 			if (is_array($id)) {
-				$this->exchangeArray($id);
+				$this->data = $id;
 			}
 			else {
-				$zend_db = Database::getConnection();
 				if (ActiveRecord::isId($id)) {
 					$sql = 'select * from people where id=?';
 				}
@@ -43,13 +41,14 @@ class Person extends ActiveRecord
 				else {
 					$sql = 'select * from people where username=?';
 				}
-				$result = $zend_db->createStatement($sql)->execute([$id]);
-				if (count($result)) {
-					$this->exchangeArray($result->current());
-				}
-				else {
-					throw new \Exception('people/unknownPerson');
-				}
+
+				$rows = parent::doQuery($sql, [$id]);
+                if (count($rows)) {
+                    $this->data = $rows[0];
+                }
+                else {
+                    throw new \Exception('people/unknownPerson');
+                }
 			}
 		}
 		else {
@@ -98,23 +97,23 @@ class Person extends ActiveRecord
 	public function getFirstname()     { return parent::get('firstname');    }
 	public function getLastname()      { return parent::get('lastname');     }
 	public function getEmail()         { return parent::get('email');        }
+	public function getDepartment_id() { return parent::get('department_id'); }
+	public function getDepartment()    { return parent::getForeignKeyObject(__namespace__.'\Department', 'department_id'); }
 
-	public function setFirstname   ($s) { parent::set('firstname',    $s); }
-	public function setLastname    ($s) { parent::set('lastname',     $s); }
-	public function setEmail       ($s) { parent::set('email',        $s); }
+	public function setFirstname    ($s) { parent::set('firstname',    $s); }
+	public function setLastname     ($s) { parent::set('lastname',     $s); }
+	public function setEmail        ($s) { parent::set('email',        $s); }
+	public function setDepartment_id($i) { parent::setForeignKeyField (__namespace__.'\Department', 'department_id', $i); }
+	public function setDepartment   ($o) { parent::setForeignKeyObject(__namespace__.'\Department', 'department_id', $o); }
 
 	public function getUsername()             { return parent::get('username'); }
 	public function getPassword()             { return parent::get('password'); } # Encrypted
 	public function getRole()                 { return parent::get('role');     }
 	public function getAuthenticationMethod() { return parent::get('authenticationMethod'); }
-	public function getDepartment_id() { return parent::get('department_id'); }
-	public function getDepartment()    { return parent::getForeignKeyObject(__namespace__.'\Department', 'department_id'); }
 
 	public function setUsername            ($s) { parent::set('username',             $s); }
 	public function setRole                ($s) { parent::set('role',                 $s); }
 	public function setAuthenticationMethod($s) { parent::set('authenticationMethod', $s); }
-	public function setDepartment_id($i) { parent::setForeignKeyField (__namespace__.'\Department', 'department_id', $i); }
-	public function setDepartment   ($o) { parent::setForeignKeyObject(__namespace__.'\Department', 'department_id', $o); }
 
 	public function setPassword($s)
 	{
@@ -128,7 +127,7 @@ class Person extends ActiveRecord
 	 */
 	public function handleUpdate($post)
 	{
-		$fields = array( 'firstname', 'middlename', 'lastname', 'email', 'department_id' );
+		$fields = ['firstname', 'middlename', 'lastname', 'email', 'department_id'];
 		foreach ($fields as $field) {
 			if (isset($post[$field])) {
 				$set = 'set'.ucfirst($field);
@@ -142,6 +141,8 @@ class Person extends ActiveRecord
 	 */
 	public function handleUpdateUserAccount($post)
 	{
+        global $DIRECTORY_CONFIG;
+
 		$fields = array(
 			'firstname','lastname','email',
 			'username','authenticationMethod','role'
@@ -158,8 +159,8 @@ class Person extends ActiveRecord
 
 		$method = $this->getAuthenticationMethod();
 		if ($this->getUsername() && $method && $method != 'local') {
-			$method = "Blossom\\Classes\\$method";
-			$identity = new $method($this->getUsername());
+            $class = $DIRECTORY_CONFIG[$method]['classname'];
+			$identity = new $class($this->getUsername());
 			$this->populateFromExternalIdentity($identity);
 		}
 	}
@@ -194,6 +195,8 @@ class Person extends ActiveRecord
 	 */
 	public function authenticate($password)
 	{
+        global $DIRECTORY_CONFIG;
+
 		if ($this->getUsername()) {
 			switch($this->getAuthenticationMethod()) {
 				case "local":
@@ -202,7 +205,8 @@ class Person extends ActiveRecord
 
 				default:
 					$method = $this->getAuthenticationMethod();
-					return $method::authenticate($this->getUsername(),$password);
+					$class = $DIRECTORY_CONFIG[$method]['classname'];
+					return $class::authenticate($this->getUsername(),$password);
 			}
 		}
 	}
@@ -221,10 +225,21 @@ class Person extends ActiveRecord
 	{
 		global $ZEND_ACL;
 		$role = 'Anonymous';
-		if (isset($_SESSION['USER']) && $_SESSION['USER']->getRole()) {
+		if (isset  ($_SESSION['USER']) && $_SESSION['USER']->getRole()) {
 			$role = $_SESSION['USER']->getRole();
 		}
 		return $ZEND_ACL->isAllowed($role, $resource, $action);
+	}
+
+	//----------------------------------------------------------------
+	// Custom Functions
+	//----------------------------------------------------------------
+	/**
+	 * @return string
+	 */
+	public function getFullname()
+	{
+		return "{$this->getFirstname()} {$this->getLastname()}";
 	}
 
 	/**
@@ -241,19 +256,5 @@ class Person extends ActiveRecord
 		if (!$this->getEmail() && $identity->getEmail()) {
 			$this->setEmail($identity->getEmail());
 		}
-	}
-
-	//----------------------------------------------------------------
-	// Custom Functions
-	//----------------------------------------------------------------
-	public function getUrl() { return BASE_URL.'/people/view?person_id='.$this->getId(); }
-	public function getUri() { return BASE_URI.'/people/view?person_id='.$this->getId(); }
-
-	/**
-	 * @return string
-	 */
-	public function getFullname()
-	{
-		return "{$this->getFirstname()} {$this->getLastname()}";
 	}
 }

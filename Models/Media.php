@@ -3,9 +3,8 @@
  * Files will be stored as /data/media/YYYY/MM/DD/$media_id.ext
  * User provided filenames will be stored in the database
  *
- * @copyright 2014 City of Bloomington, Indiana
+ * @copyright 2014-2016 City of Bloomington, Indiana
  * @license http://www.gnu.org/licenses/agpl.txt GNU/AGPL, see LICENSE.txt
- * @author Cliff Ingham <inghamn@bloomington.in.gov>
  */
 namespace Application\Models;
 
@@ -73,10 +72,9 @@ class Media extends ActiveRecord
 	{
 		if ($id) {
 			if (is_array($id)) {
-				$this->exchangeArray($id);
+				$this->data = $id;
 			}
 			else {
-				$zend_db = Database::getConnection();
 				if (ActiveRecord::isId($id)) {
 					$sql = 'select * from media where id=?';
 				}
@@ -90,10 +88,10 @@ class Media extends ActiveRecord
 					$id = "$matches[1]%";
 					$sql = 'select * from media where internalFilename like ?';
 				}
-				$result = $zend_db->createStatement($sql)->execute([$id]);
-				if (count($result)) {
-					$this->exchangeArray($result->current());
-				}
+				$rows = parent::doQuery($sql, [$id]);
+                if (count($rows)) {
+                    $this->data = $rows[0];
+                }
 				else {
 					throw new \Exception('media/unknownMedia');
 				}
@@ -145,9 +143,11 @@ class Media extends ActiveRecord
 		if ($this->getId()) {
 			$tags = $this->getTags();
 
-			$zend_db = Database::getConnection();
-			$zend_db->query('delete from media_tags where media_id=?', [$this->getId()]);
-			$query = $zend_db->createStatement('insert media_tags set media_id=?,tag_id=?');
+			$pdo = Database::getConnection();
+			$query = $pdo->prepare('delete from media_tags where media_id=?');
+			$query->execute([$this->getId]);
+
+			$query = $pdo->prepare('insert media_tags set media_id=?,tag_id=?');
 			foreach($tags as $tag) {
 				$query->execute([$this->getId(), $tag->getId()]);
 			}
@@ -160,8 +160,9 @@ class Media extends ActiveRecord
 	public function delete()
 	{
 		if ($this->getId()) {
-			$zend_db = Database::getConnection();
-			$zend_db->query('delete from media_tags where media_id=?')->execute([$this->getId()]);
+            $pdo = Database::getConnection();
+            $query = $pdo->prepare('delete from media_tags where media_id=?');
+            $query->execute([$this->getId()]);
 
 			$this->deleteDerivatives();
 
