@@ -11,7 +11,7 @@ use Blossom\Classes\Controller;
 
 class DerivativesController extends Controller
 {
-	public function index()
+	public function index(array $params)
 	{
 		$table = new DerivativesTable();
 		$derivatives = $table->find();
@@ -19,7 +19,7 @@ class DerivativesController extends Controller
 		return new \Application\Views\Derivatives\ListView(['derivatives'=>$derivatives]);
 	}
 
-	public function update()
+	public function update(array $params)
 	{
         $return_url = self::generateUrl('derivatives.index');
 

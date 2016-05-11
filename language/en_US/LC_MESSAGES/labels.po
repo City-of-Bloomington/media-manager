@@ -156,3 +156,12 @@ msgstr[1] "Sizes"
 
 msgid "url"
 msgstr "URL"
+
+msgid "title"
+msgstr "Title"
+
+msgid "tags"
+msgstr "Tags"
+
+msgid "description"
+msgstr "Description"

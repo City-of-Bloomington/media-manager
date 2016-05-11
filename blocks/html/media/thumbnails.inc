@@ -1,50 +1,56 @@
 <?php
 /**
- * @copyright 2014 City of Bloomington, Indiana
+ * @copyright 2014-2016 City of Bloomington, Indiana
  * @license http://www.gnu.org/copyleft/gpl.html GNU/GPL, see LICENSE.txt
- * @author Cliff Ingham <inghamn@bloomington.in.gov>
- * @param Zend\Db\ResultSet $this->media
+ * @param array $this->media
  */
 use Application\Models\Media;
 use Application\Models\Person;
-use Blossom\Classes\View;
 
-$userCanEdit = Person::isAllowed('media', 'update');
+$userCanEdit = Person::isAllowed('media', 'edit');
 
 if (count($this->media)) {
-	echo "<div class=\"contactSheet\">";
+	echo "<section class=\"contactSheet\">";
+
+	$fields = ['id', 'title', 'filename', 'width', 'height', 'mime_type'];
 
 	foreach($this->media as $media) {
-		$title = View::escape($media->getTitle());
+        foreach ($fields as $f) {
+            $get = 'get'.ucfirst($f);
+            $$f  = self::escape($media->$get());
+        }
 
 		$editButton = '';
 		if ($userCanEdit) {
 			$h = $this->template->getHelper('buttonLink');
 			$editButton = $h->buttonLink(
-				BASE_URI.'/media/update?media_id='.$media->getId(),
-				$this->_('edit_media'),
+                self::generateUri('media.update', ['id'=>$id]),
+				$this->_('media_edit'),
 				'edit'
 			);
 		}
 
-		$filename = View::escape($media->getFilename());
+		$uri = self::generateUri('media.view', ['id'=>$id]);
 		echo "
-		<div class=\"media\">
-			<h3>{$media->getId()} $editButton</h3>
+		<article class=\"media\">
+            <header>
+                <h1>$id</h1>
+                <div class=\"tools\">$editButton</div>
+            </header>
 			<div class=\"thumbnail\">
-				<a href=\"".BASE_URI."/media/view?media_id={$media->getId()}\">
+				<a href=\"$uri\">
 					<img src=\"{$media->getUrl(Media::SIZE_THUMBNAIL)}\" />
 				</a>
 			</div>
 			<table>
 				<tr><td>$title</td></tr>
-				<tr><td>{$media->getWidth()}x{$media->getHeight()}</td></tr>
-				<tr><td>{$media->getMime_type()}</td></tr>
+				<tr><td>{$width}x{$height}</td></tr>
+				<tr><td>$mime_type</td></tr>
 				<tr><td>$filename</td></tr>
 			</table>
-		</div>
+		</article>
 		";
 	}
-	echo "</div>";
+	echo "</section>";
 }
 else { echo "<p>No Photos Found.</p>"; }

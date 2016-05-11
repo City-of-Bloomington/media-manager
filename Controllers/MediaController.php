@@ -15,16 +15,8 @@ class MediaController extends Controller
 {
 	private function loadMedia($id)
 	{
-		try {
-            if (!$id) { throw new \Exception('media/unknown'); }
-			$media = new Media($id);
-		}
-		catch (\Exception $e) {
-            header('HTTP/1.1 404 Not Found', true, 404);
-            $this->template->blocks[] = new Block('404.inc');
-			return null;
-		}
-		return $media;
+        try { return new Media($id); }
+        catch (\Exception $e) { $_SESSION['errorMessages'][] = $e; }
 	}
 
 	/**
@@ -46,16 +38,16 @@ class MediaController extends Controller
 	}
 
 
-	public function index()
+	public function index(array $params)
 	{
 	}
 
-	public function view()
+	public function view(array $params)
 	{
-		$media = $this->loadMedia($_GET['media_id']);
-		if ($media) {
-            $this->template->blocks[] = new Block('media/view.inc', ['media'=>$media]);
-        }
+		$media = $this->loadMedia($_GET['id']);
+		return $media
+            ? new \Application\Views\Media\InfoView(['media'=>$media])
+            : new \Application\Views\NotFoundView();
 	}
 
 	/**
@@ -64,19 +56,17 @@ class MediaController extends Controller
 	 * @param REQUEST media_id
 	 * @param REQUEST derivative
 	 */
-	public function derivative()
+	public function derivative(array $params)
 	{
-		$this->template->setFilename('media');
-
-        $media = $this->loadMedia($_REQUEST['media_id']);
+        $media = $this->loadMedia($params['media_id']);
         if ($media) {
-            $derivative = !empty($_REQUEST['derivative']) ? $_REQUEST['derivative'] : null;
+            $derivative = !empty($params['derivative']) ? $params['derivative'] : null;
             $class = self::classForMediaDerivative($media, $derivative);
 
-            $this->template->blocks[] = new Block(
-                "media/download.inc",
-                ['media'=>$media, 'derivative'=>$derivative]
-            );
+            return new \Application\Views\Media\RenderView(['media'=>$media, 'derivative'=>$derivative]);
+        }
+        else {
+            return new \Application\Views\NotFoundView();
         }
 	}
 
@@ -87,7 +77,7 @@ class MediaController extends Controller
 	 * @param REQUEST derivative
 	 * @param FILES derivativeFile
 	 */
-	public function saveDerivative()
+	public function saveDerivative(array $params)
 	{
 		if (   empty($_FILES['derivativeFile']['tmp_name'])
             || empty($_REQUEST['media_id'])
@@ -97,24 +87,23 @@ class MediaController extends Controller
             exit();
         }
 
-		$this->template->setFilename('media');
-
         $media = $this->loadMedia($_REQUEST['media_id']);
         if ($media) {
             $derivative = !empty($_REQUEST['derivative']) ? $_REQUEST['derivative'] : null;
             $class = self::classForMediaDerivative($media, $derivative);
 
             $class::saveDerivative($media->getFullPath(), $derivative, $_FILES['derivativeFile']['tmp_name']);
-            $this->template->blocks[] = new Block(
-                "media/download.inc",
-                ['media'=>$media, 'derivative'=>$derivative]
-            );
+
+            return new \Application\Views\Media\RenderView(['media'=>$media, 'derivative'=>$derivative]);
+        }
+        else {
+            return new \Application\Views\NotFoundView();
         }
 	}
 
-	public function update()
+	public function update(array $params)
 	{
-		$media = $this->loadMedia($_REQUEST['media_id']);
+		$media = $this->loadMedia($_REQUEST['id']);
 		if ($media) {
             if (isset($_POST['title'])) {
                 try {
@@ -123,23 +112,29 @@ class MediaController extends Controller
                         $media->setFile($_FILES['mediafile']);
                     }
                     $media->save();
-                    header('Location: '.BASE_URL.'/media/view?media_id='.$media->getId());
+
+                    $url = self::generateUrl('media.view', ['id'=>$media->getId()]);
+                    header('Location: '.$url);
                     exit();
                 }
                 catch (\Exception $e) {
                     $_SESSION['errorMessages'][] = $e;
                 }
             }
-            $this->template->blocks[] = new Block('media/updateForm.inc', ['media'=>$media]);
+            return new \Application\Views\Media\UpdateView(['media'=>$media]);
+        }
+        else {
+            return new \Application\Views\NotFoundView();
         }
 	}
 
-	public function delete()
+	public function delete(array $params)
 	{
-		$media = $this->loadMedia($_GET['media_id']);
+		$media = $this->loadMedia($_GET['id']);
 		if ($media) {
             $media->delete();
-            header('Location: '.BASE_URL);
+
+            header('Location: '.self::generateUrl('home'));
             exit();
         }
 	}

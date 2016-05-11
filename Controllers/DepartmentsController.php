@@ -1,8 +1,7 @@
 <?php
 /**
- * @copyright 2014 City of Bloomington, Indiana
+ * @copyright 2014-2016 City of Bloomington, Indiana
  * @license http://www.gnu.org/licenses/agpl.txt GNU/AGPL, see LICENSE.txt
- * @author Cliff Ingham <inghamn@bloomington.in.gov>
  */
 namespace Application\Controllers;
 
@@ -26,7 +25,7 @@ class DepartmentsController extends Controller
 		}
 	}
 
-	public function index()
+	public function index(array $params)
 	{
 		$table = new DepartmentTable();
 		$list = $table->find();
@@ -34,7 +33,7 @@ class DepartmentsController extends Controller
 		return new \Application\Views\Departments\ListView(['departments'=>$list]);
 	}
 
-	public function view()
+	public function view(array $params)
 	{
         if (!empty($_GET['id'])) {
             $department = $this->loadDepartment($_GET['id']);
@@ -46,7 +45,7 @@ class DepartmentsController extends Controller
 
 	}
 
-	public function update()
+	public function update(array $params)
 	{
         $department = !empty($_REQUEST['id'])
 			? $this->loadDepartment($_REQUEST['id'])

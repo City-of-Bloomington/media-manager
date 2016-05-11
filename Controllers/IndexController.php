@@ -10,7 +10,7 @@ use Blossom\Classes\Controller;
 
 class IndexController extends Controller
 {
-	public function index()
+	public function index(array $params)
 	{
 		$search = new Search();
 		$solrObject = $search->query($_GET);

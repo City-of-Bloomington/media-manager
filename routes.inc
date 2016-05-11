@@ -8,16 +8,16 @@ $ROUTES = $rf->newInstance();
 
 $ROUTES->add('home', '/')->setValues(['controller'=>'index', 'action'=>'index']);
 
-$ROUTES->attach('m', '/m/{year}/{month}/{day}/{derivative}/{media_id}', function ($r) {
-    $r->setTokens([
-        'year'       => '\d{4}',
-        'month'      => '\d{1,2}',
-        'day'        => '\d{1,2}',
-        'derivative' => '\d+',
-        'media_id'   => '[0-9a-f]{13}'
-    ]);
-    $r->setValues(['controller'=>'media', 'action'=>'derivative']);
-});
+$ROUTES->add('m', '/m/{year}/{month}/{day}/{derivative}/{media_id}')
+       ->addTokens([
+            'year'       => '\d{4}',
+            'month'      => '\d{1,2}',
+            'day'        => '\d{1,2}',
+            'derivative' => '\d+',
+            'media_id'   => '[0-9a-f]{13}'
+        ])
+       ->addValues(['controller'=>'media', 'action'=>'derivative']);
+
 
 $ROUTES->attach('login', '/login', function ($r) {
     $r->setValues(['controller'=>'login']);
@@ -60,6 +60,17 @@ $ROUTES->attach('derivatives', '/derivatives', function ($r) {
 
     $r->add('index',  '')            ->addValues(['action'=>'index' ]);
     $r->add('update', '/update{/id}')->addValues(['action'=>'update']);
+});
+
+$ROUTES->attach('media', '/media', function ($r) {
+    $r->setTokens(['id'=>'[0-9]+']);
+    $r->setValues(['controller'=>'media']);
+
+    $r->add('index',  '')            ->addValues(['action'=>'index' ]);
+    $r->add('view',   '/{id}')       ->addValues(['action'=>'view'  ]);
+    $r->add('update', '/update{/id}')->addValues(['action'=>'update']);
+    $r->add('delete', '/delete/{id}')->addValues(['action'=>'delete']);
+    $r->add('saveDerivative', '/saveDerivative')->addValues(['action'=>'saveDerivative']);
 });
 
 $NAV1 = [

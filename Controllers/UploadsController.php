@@ -13,7 +13,7 @@ use Blossom\Classes\Controller;
 
 class UploadsController extends Controller
 {
-	public function index()
+	public function index(array $params)
 	{
 		// Single file uploads get saved to the database right away
 		// Send the user to the edit page immediately, so they can
@@ -51,13 +51,13 @@ class UploadsController extends Controller
 		}
 	}
 
-	public function thumbnail()
+	public function thumbnail(array $params)
 	{
 		$this->template->setFilename('media');
 		$this->template->blocks[] = new Block('uploads/thumbnail.inc');
 	}
 
-	public function import()
+	public function import(array $params)
 	{
 		if (isset($_SESSION['importErrors'])) { unset($_SESSION['importErrors']); }
 
@@ -87,7 +87,7 @@ class UploadsController extends Controller
 	 *
 	 * @param string $file File to delete
 	 */
-	public function delete()
+	public function delete(array $params)
 	{
 		$uploads = new UploadDirectory($_SESSION['USER']);
 		if (isset($_GET['file'])) {
